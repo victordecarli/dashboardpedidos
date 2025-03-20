@@ -5,6 +5,7 @@ const authMiddleware = require('../middleware/authMiddleware'); // Vamos criar d
 
 router.post('/', authMiddleware, orderController.createOrder);
 router.get('/', authMiddleware, orderController.getOrders);
+router.get('/:id', authMiddleware, orderController.getOrderById);
 router.get('/user', authMiddleware, orderController.getOrdersByUser);
 
 module.exports = router;
