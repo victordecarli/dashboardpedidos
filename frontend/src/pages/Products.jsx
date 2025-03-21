@@ -32,7 +32,7 @@ export default function Products() {
   const finalizarPedido = async () => {
     const payload = {
       products: carrinho.map((item) => ({
-        productId: item._id,
+        product: item._id,
         quantity: item.quantity,
       })),
       total: carrinho.reduce((acc, item) => acc + item.price * item.quantity, 0),

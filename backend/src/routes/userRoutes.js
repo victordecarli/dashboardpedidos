@@ -1,7 +1,6 @@
 const express = require("express");
 const userController = require("../controllers/userController");
-const authMiddleware = require("../middleware/authMiddleware");
-const { isAdmin } = require('../middleware/authMiddleware');
+const { authMiddleware, isAdmin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // 📌 Rotas públicas (listar produtos ativos)
