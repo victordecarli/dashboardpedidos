@@ -1,5 +1,6 @@
 // controllers/orderController.js
 const Order = require('../models/Order');
+const Product = require('../models/Product')
 const moment = require('moment');
 
 function handleMongooseError(err, res) {
@@ -49,6 +50,31 @@ exports.createOrder = async (req, res) => {
         success: false,
         message: 'Valor total inválido ou ausente.'
       });
+    }
+
+      // Verificar cada produto individualmente
+    for (const item of products) {
+      const product = await Product.findById(item.product);
+
+      if (!product) {
+        return res
+          .status(422)
+          .json({ error: `Produto não encontrado: ${item.product}` });
+      }
+
+      if (product.status !== "ativo") {
+        return res
+          .status(422)
+          .json({ error: `Produto "${product.name}" está inativo.` });
+      }
+
+      if (product.stock < item.quantity) {
+        return res
+          .status(422)
+          .json({
+          error: `Estoque insuficiente para "${product.name}". Estoque atual: ${product.stock}`
+        });
+      }
     }
 
     const order = new Order({ user: userId, products, total });
@@ -179,27 +205,48 @@ exports.getOrdersByUser = async (req, res) => {
 // 📌 Alterar status do pedido
 exports.updateOrder = async (req, res) => {
   try {
-    const { products, total } = req.body;
-      if (products && (!Array.isArray(products) || products.length === 0)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nenhum produto selecionado.'
-      });
+    const { products, total, status } = req.body;
+    const updateData = {};
+    
+      if (products) {
+      if (!Array.isArray(products) || products.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Nenhum produto selecionado.",
+        });
+      }
+      updateData.products = products;
     }
-      if (total != null && total < 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valor total inválido.'
-      });
+    if (total != null) {
+      if (total < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Valor total inválido.",
+        });
+      }
+      updateData.total = total;
     }
+
+        // Atualizar status (se enviado)
+    if (status) {
+      const allowedStatuses = ["processando", "finalizado", "cancelado"];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Status inválido. Use: ${allowedStatuses.join(", ")}`,
+        });
+      }
+      updateData.status = status;
+    }
+
 
     const order = await Order.findByIdAndUpdate(
       req.params.id,
-      { products, total },
+      updateData,
       { new: true, runValidators: true }
     )
-      .populate('user', 'name email')
-      .populate('products.product', 'name price');
+      .populate("user", "name email")
+      .populate("products.product", "name price");
 
    if (!order) {
       return res.status(404).json({
@@ -208,27 +255,27 @@ exports.updateOrder = async (req, res) => {
       });
     }
 
-      const formattedOrder = {
+    const formattedOrder = {
       id: order._id,
       user: {
         id_user: order.user._id,
         name: order.user.name,
-        email: order.user.email
+        email: order.user.email,
       },
       products: order.products.map((item) => ({
-        product_name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity
+        product_name: item.product?.name || "Produto removido",
+        price: item.product?.price || 0,
+        quantity: item.quantity,
       })),
       total: order.total,
       status: order.status,
-      data_pedido: moment(order.createdAt).format('DD/MM/YYYY HH:mm')
+      data_pedido: moment(order.createdAt).format("DD/MM/YYYY HH:mm"),
     };
 
     res.status(200).json({
       success: true,
-      message: 'Pedido atualizado com sucesso',
-      data: formattedOrder
+      message: "Pedido atualizado com sucesso",
+      data: formattedOrder,
     });
   } catch (err) {
     handleMongooseError(err, res);

@@ -27,7 +27,7 @@ export default function AdminOrders() {
       await updateOrder(orderId, { status: newStatus });
       fetchOrders();
     } catch (err) {
-      alert("Erro ao atualizar pedido");
+      alert("Erro ao atualizar pedido",err);
     }
   };
 
@@ -55,9 +55,8 @@ export default function AdminOrders() {
                   onChange={(e) => handleStatusChange(order.id, e.target.value)}
                   className="border rounded px-2 py-1 text-sm"
                 >
-                  <option value="pendente">Pendente</option>
                   <option value="processando">Processando</option>
-                  <option value="concluído">Concluído</option>
+                  <option value="finalizado">Concluído</option>
                 </select>
               </div>
             </div>

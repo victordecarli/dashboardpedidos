@@ -7,3 +7,7 @@ export const getProducts = async () => {
 export const createProduct = async (productData) => {
   return api.post("/products", productData);
 };
+
+export const updateProduct = async () => {
+  return api.patch("/products/:id")
+}
