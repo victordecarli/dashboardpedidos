@@ -1,27 +1,32 @@
 // src/services/orderService.js
 import { api } from "./api";
 
-export const createOrder = async (data) => {
+// Criar pedido
+export const createOrder = (data) => {
   return api.post("/orders", data);
 };
 
-export const getOrders = async () => {
-  return api.get("/orders");
-};
-
-export const getOrderById = async (id) => {
-  return api.get(`/orders/${id}`);
-};
-
-export const getUserOrders = async () => {
+// Buscar pedidos do usuário autenticado
+export const getOrdersByUser = () => {
   return api.get("/orders/user");
 };
 
+// Buscar pedido por ID (admin ou usuário)
+export const getOrderById = (id) => {
+  return api.get(`/orders/${id}`);
+};
 
-export const getAllOrders = async () => {
+// Buscar todos os pedidos (admin)
+export const getOrders = () => {
   return api.get("/orders");
 };
 
-export const updateOrder = async (orderId, data) => {
+// Atualizar pedido (admin)
+export const updateOrder = (orderId, data) => {
   return api.patch(`/orders/${orderId}`, data);
+};
+
+// Deletar pedido (admin)
+export const deleteOrder = (id) => {
+  return api.delete(`/orders/${id}`);
 };

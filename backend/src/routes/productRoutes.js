@@ -10,7 +10,6 @@ router.get('/:id', productController.getProductById);
 // 📌 Rotas protegidas (apenas usuários autenticados podem acessar)
 router.post('/', authMiddleware,isAdmin, productController.createProduct);
 router.patch('/:id', authMiddleware, isAdmin, productController.updateProduct); 
-router.put('/:id', authMiddleware, isAdmin, productController.updateProduct); 
 router.patch('/:id/status', authMiddleware, isAdmin, productController.toggleProductStatus);
 router.delete('/:id', authMiddleware,isAdmin, productController.deleteProduct);
 
