@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import AdicionarProduto from './components/AdicionarProduto.jsx';
+import Estoque from './components/Estoque';
+import RegistrarCompra from './components/RegistrarCompra.jsx';
+import RegistroCompras from './components/RegistroCompras.jsx';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [estoque, setEstoque] = useState([]);
+  const [registros, setRegistros] = useState([]);
+
+  const adicionarProduto = (nome, preco, quantidade) => {
+    setEstoque([...estoque, { nome, preco, quantidade }]);
+  };
+
+  const registrarCompra = (cliente, nomeProduto, quantidade) => {
+    const produtoIndex = estoque.findIndex((p) => p.nome === nomeProduto);
+    if (produtoIndex === -1) return alert('Produto não encontrado');
+
+    const produto = estoque[produtoIndex];
+    if (produto.quantidade < quantidade) return alert('Estoque insuficiente');
+
+    const valorTotal = (produto.preco * quantidade).toFixed(2);
+    const novoEstoque = [...estoque];
+    novoEstoque[produtoIndex].quantidade -= quantidade;
+
+    setEstoque(novoEstoque);
+    setRegistros([
+      ...registros,
+      { cliente, nomeProduto, quantidade, valorTotal },
+    ]);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <h1>Loja Virtual</h1>
+      <AdicionarProduto onAdicionar={adicionarProduto} />
+      <Estoque estoque={estoque} />
+      <RegistrarCompra estoque={estoque} onRegistrar={registrarCompra} />
+      <RegistroCompras registros={registros} />
+    </div>
+  );
+};
 
-export default App
+export default App;
