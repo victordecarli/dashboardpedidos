@@ -40,9 +40,8 @@ export default function ProductFormAdmin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
+    <div className="p-4 max-w-4xl mx-auto">
       <AdminNavbar />
-
       <div className="max-w-xl mx-auto p-6 bg-white rounded-2xl shadow-md">
         <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">
           Cadastrar Novo Produto
