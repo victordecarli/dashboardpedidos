@@ -5,6 +5,7 @@ import Orders from '../pages/Orders';
 import PrivateRoute from './PrivateRoute';
 import AdminOrders from '../pages/AdminOrders';
 import ProductFormAdmin from '../pages/ProductFormAdmin';
+import Register from '../pages/Register';
 
 export default function AppRoutes() {
   return (
@@ -17,6 +18,7 @@ export default function AppRoutes() {
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/products/new" element={<ProductFormAdmin />} />
         </Route>
+        <Route path="/register" element={<Register />} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

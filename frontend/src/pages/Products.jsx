@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getProducts, toggleProductStatus } from '../services/productService';
+import { getProducts } from '../services/productService';
 import { createOrder } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
 import { useNavigate } from 'react-router-dom';
@@ -83,11 +83,11 @@ export default function Products() {
       // Se antes o estoque estava em 0 e agora voltou a ter (ex: 1)
       const novoEstoque = produtoNoCarrinho.stock - novaQuantidade;
 
-      if (novoEstoque >= 1) {
-        updateProduct(produtoId, { active: true }).then(() => {
+      if (novoEstoque >= 1 && produtoNoCarrinho.status === 'inativo') {
+        updateProduct(produtoId, { status: 'ativo' }).then(() => {
           setProducts((prevProducts) =>
             prevProducts.map((p) =>
-              p._id === produtoId ? { ...p, active: true } : p,
+              p._id === produtoId ? { ...p, status: 'ativo' } : p,
             ),
           );
         });
@@ -120,6 +120,21 @@ export default function Products() {
     }
   };
 
+  const desativarProduto = async (produtoId) => {
+    try {
+      await updateProduct(produtoId, { status: 'inativo' });
+
+      setProducts((prevProducts) =>
+        prevProducts.map((p) =>
+          p._id === produtoId ? { ...p, status: 'inativo' } : p,
+        ),
+      );
+    } catch (err) {
+      console.error('Erro ao desativar produto:', err);
+      alert('❌ Não foi possível desativar o produto.');
+    }
+  };
+
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <AdminNavbar />
@@ -149,7 +164,7 @@ export default function Products() {
       </div> */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {products
-          .filter((product) => product.active !== false) // ❌ oculta os inativos
+          .filter((product) => product.status === 'ativo')
           .map((product) => (
             <div key={product._id} className="border p-4 rounded shadow">
               <h2 className="text-lg font-semibold">{product.name}</h2>
@@ -164,11 +179,8 @@ export default function Products() {
                 Adicionar
               </button>
               <button
-                className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                style={{ marginLeft: '15px' }}
-                onClick={() => {
-                  toggleProductStatus;
-                }}
+                onClick={() => desativarProduto(product._id)}
+                className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-4"
               >
                 Excluir
               </button>

@@ -1,38 +1,44 @@
 import { useState } from 'react';
-import { login } from '../services/authService';
-import { setAuthToken } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { createUser } from '../services/userService';
 
-export default function Login() {
+export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nome, setNome] = useState('');
   const [erro, setErro] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setErro(null);
 
     try {
-      const res = await login({ email, password });
-      const token = res.data.token;
-
-      localStorage.setItem('token', token);
-      setAuthToken(token);
-
-      navigate('/products');
+      await createUser({ name: nome, email, password });
+      alert('✅ Conta criada com sucesso!');
+      navigate('/'); // volta para login
     } catch (err) {
-      setErro('Email ou senha inválidos', err);
+      setErro('❌ Erro ao criar conta.');
+      console.error(err);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
-        onSubmit={handleLogin}
+        onSubmit={handleRegister}
         className="bg-white p-6 rounded shadow-md w-96"
       >
-        <h2 className="text-xl font-bold mb-4">Login</h2>
+        <h2 className="text-xl font-bold mb-4">Criar Conta</h2>
+
+        <input
+          type="text"
+          placeholder="Nome"
+          className="w-full p-2 mb-3 border rounded"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          required
+        />
 
         <input
           type="email"
@@ -56,16 +62,10 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
         >
-          Entrar
+          Criar Conta
         </button>
-        <p className="mt-4 text-sm text-center">
-          Não tem uma conta?{' '}
-          <a href="/register" className="text-blue-600 hover:underline">
-            Criar agora
-          </a>
-        </p>
       </form>
     </div>
   );
