@@ -1,15 +1,15 @@
-const express = require("express");
-const userController = require("../controllers/userController");
-const { authMiddleware, isAdmin } = require("../middleware/authMiddleware");
+const express = require('express');
 const router = express.Router();
+const userController = require('../controllers/userController');
+const { authMiddleware, isAdmin } = require('../middleware/authMiddleware');
 
+// Aplicar proteção de rota
+router.use(authMiddleware); // Precisa estar logado
+router.use(isAdmin); // Precisa ser admin
 
-// 📌 Rotas protegidas (apenas adm podem acessar)
-
-router.patch("/:id", authMiddleware,isAdmin, userController.updateUser);
-router.post("/", authMiddleware,isAdmin, userController.createUser);
-router.get("/", authMiddleware, isAdmin, userController.getAllUsers);
-router.get("/:id", authMiddleware,isAdmin, userController.getUserById);
-router.delete("/:id", authMiddleware,isAdmin, userController.deleteUser);
+router.get('/', userController.getAllUsers);
+router.get('/:id', userController.getUserById);
+router.patch('/:id', userController.updateUser);
+router.delete('/:id', userController.deleteUser);
 
 module.exports = router;

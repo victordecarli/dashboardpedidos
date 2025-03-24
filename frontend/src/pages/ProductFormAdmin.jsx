@@ -3,6 +3,8 @@ import { createProduct } from '../services/productService';
 import { useNavigate } from 'react-router-dom';
 import AdminNavbar from '../components/AdminNavbar';
 
+import { getUserRole } from '../utils/auth';
+
 export default function ProductFormAdmin() {
   const [form, setForm] = useState({
     name: '',
@@ -14,6 +16,15 @@ export default function ProductFormAdmin() {
 
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // 🚫 Verifica se o usuário é admin
+  if (getUserRole() !== 'admin') {
+    return (
+      <div className="p-10 text-center text-red-600 font-semibold text-lg">
+        ⛔ Acesso restrito para administradores.
+      </div>
+    );
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -2,23 +2,55 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Products from '../pages/Products';
 import Orders from '../pages/Orders';
-import PrivateRoute from './PrivateRoute';
 import AdminOrders from '../pages/AdminOrders';
 import ProductFormAdmin from '../pages/ProductFormAdmin';
 import Register from '../pages/Register';
+import PrivateRoute from './PrivateRoute';
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route element={<PrivateRoute />}>
-          <Route path="/products" element={<Products />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/admin/orders" element={<AdminOrders />} />
-          <Route path="/admin/products/new" element={<ProductFormAdmin />} />
-        </Route>
         <Route path="/register" element={<Register />} />
+
+        {/* Rotas protegidas para usuários autenticados */}
+        <Route
+          path="/products"
+          element={
+            <PrivateRoute>
+              <Products />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <PrivateRoute>
+              <Orders />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Rotas exclusivas para administradores */}
+        <Route
+          path="/admin-orders"
+          element={
+            <PrivateRoute adminOnly>
+              <AdminOrders />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/products/new"
+          element={
+            <PrivateRoute adminOnly>
+              <ProductFormAdmin />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Qualquer outra rota leva para login */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

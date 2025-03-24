@@ -3,23 +3,34 @@ import { useNavigate } from 'react-router-dom';
 import { createUser } from '../services/userService';
 
 export default function Register() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [nome, setNome] = useState('');
-  const [erro, setErro] = useState(null);
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setErro(null);
+    setError(null);
 
     try {
-      await createUser({ name: nome, email, password });
-      alert('✅ Conta criada com sucesso!');
-      navigate('/'); // volta para login
+      await createUser({
+        ...form,
+        role: 'user', // Define como usuário normal
+      });
+
+      alert('Conta criada com sucesso!');
+      navigate('/login');
     } catch (err) {
-      setErro('❌ Erro ao criar conta.');
       console.error(err);
+      setError('❌ Erro ao criar conta.');
     }
   };
 
@@ -29,36 +40,43 @@ export default function Register() {
         onSubmit={handleRegister}
         className="bg-white p-6 rounded shadow-md w-96"
       >
-        <h2 className="text-xl font-bold mb-4">Criar Conta</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">Criar Conta</h2>
 
         <input
           type="text"
-          placeholder="Nome"
+          name="name"
+          placeholder="Name"
+          value={form.name}
+          onChange={handleChange}
           className="w-full p-2 mb-3 border rounded"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
           required
         />
 
         <input
           type="email"
-          placeholder="Email"
+          name="email"
+          placeholder="email@gmail.com"
+          value={form.email}
+          onChange={handleChange}
           className="w-full p-2 mb-3 border rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           required
         />
 
         <input
           type="password"
-          placeholder="Senha"
+          name="password"
+          placeholder="••••••••"
+          value={form.password}
+          onChange={handleChange}
           className="w-full p-2 mb-3 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
           required
         />
 
-        {erro && <p className="text-red-600 text-sm mb-2">{erro}</p>}
+        {error && (
+          <p className="text-red-600 text-sm mb-2 flex items-center gap-1">
+            ❌ {error}
+          </p>
+        )}
 
         <button
           type="submit"

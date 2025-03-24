@@ -2,8 +2,18 @@ import { useEffect, useState } from 'react';
 import { getOrders, updateOrder } from '../services/index';
 import { currencyFormat } from '../utils/currencyFormat';
 import AdminNavbar from '../components/AdminNavbar';
+import { getUserRole } from '../utils/auth';
 
 export default function AdminOrders() {
+  // 🔒 Proteção: apenas administradores
+  if (getUserRole() !== 'admin') {
+    return (
+      <p className="text-center mt-10 text-red-600">
+        ⛔ Acesso restrito para administradores.
+      </p>
+    );
+  }
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 

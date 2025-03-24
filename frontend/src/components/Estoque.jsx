@@ -1,4 +1,13 @@
 import React from 'react';
+import { getUserRole } from '../utils/auth';
+
+if (getUserRole() !== 'admin') {
+  return (
+    <p className="text-center mt-10 text-red-600">
+      ⛔ Acesso restrito para administradores.
+    </p>
+  );
+}
 
 const Estoque = ({ estoque }) => {
   return (

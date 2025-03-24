@@ -139,29 +139,6 @@ export default function Products() {
     <div className="p-4 max-w-4xl mx-auto">
       <AdminNavbar />
       <h1 className="text-2xl font-bold mb-4">Cardápio</h1>
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {products.map((product) => (
-          <div key={product._id} className="border p-4 rounded shadow">
-            <h2 className="text-lg font-semibold">{product.name}</h2>
-            <p className="text-sm text-gray-500">
-              {currencyFormat(product.price)}
-            </p>
-            <p>Estoque: {product.stock} Unidades</p>
-            <button
-              className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => adicionarAoCarrinho(product)}
-            >
-              Adicionar
-            </button>
-            <button
-              className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-              style={{ marginLeft: '15px' }}
-            >
-              Excluir
-            </button>
-          </div>
-        ))}
-      </div> */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {products
           .filter((product) => product.status === 'ativo')
@@ -178,12 +155,15 @@ export default function Products() {
               >
                 Adicionar
               </button>
-              <button
-                onClick={() => desativarProduto(product._id)}
-                className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-4"
-              >
-                Excluir
-              </button>
+
+              {localStorage.getItem('role') === 'admin' && (
+                <button
+                  onClick={() => desativarProduto(product._id)}
+                  className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-4"
+                >
+                  Excluir
+                </button>
+              )}
             </div>
           ))}
       </div>

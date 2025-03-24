@@ -1,14 +1,14 @@
 // src/services/orderService.js
-import { api } from "./api";
+import { api } from './api';
 
 // Criar pedido
 export const createOrder = (data) => {
-  return api.post("/orders", data);
+  return api.post('/orders', data);
 };
 
 // Buscar pedidos do usuário autenticado
 export const getOrdersByUser = () => {
-  return api.get("/orders/user");
+  return api.get('/orders/user');
 };
 
 // Buscar pedido por ID (admin ou usuário)
@@ -18,7 +18,7 @@ export const getOrderById = (id) => {
 
 // Buscar todos os pedidos (admin)
 export const getOrders = () => {
-  return api.get("/orders");
+  return api.get('/orders');
 };
 
 // Atualizar pedido (admin)

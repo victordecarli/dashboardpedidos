@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getOrders } from '../services/index';
+import { getOrdersByUser } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
 import AdminNavbar from '../components/AdminNavbar';
 
@@ -8,7 +8,7 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getOrders()
+    getOrdersByUser()
       .then((res) => {
         setOrders(res.data.data);
         setLoading(false);
