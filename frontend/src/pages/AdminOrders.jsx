@@ -1,21 +1,35 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getOrders, updateOrder } from '../services/index';
 import { currencyFormat } from '../utils/currencyFormat';
 import AdminNavbar from '../components/AdminNavbar';
+import Modal from '../components/Modal';
 import { getUserRole } from '../utils/auth';
 
 export default function AdminOrders() {
-  // 🔒 Proteção: apenas administradores
-  if (getUserRole() !== 'admin') {
-    return (
-      <p className="text-center mt-10 text-red-600">
-        ⛔ Acesso restrito para administradores.
-      </p>
-    );
-  }
-
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
+
+  const isAdmin = getUserRole() === 'admin';
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setShowModal(true);
+    } else {
+      fetchOrders();
+    }
+  }, []);
+
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      await updateOrder(orderId, { status: newStatus });
+      fetchOrders();
+    } catch (err) {
+      alert('Erro ao atualizar pedido', err);
+    }
+  };
 
   const fetchOrders = () => {
     getOrders()
@@ -29,17 +43,9 @@ export default function AdminOrders() {
       });
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const handleStatusChange = async (orderId, newStatus) => {
-    try {
-      await updateOrder(orderId, { status: newStatus });
-      fetchOrders();
-    } catch (err) {
-      alert('Erro ao atualizar pedido', err);
-    }
+  const handleCloseModal = () => {
+    setShowModal(false);
+    navigate('/products'); // Redireciona após o modal ser fechado
   };
 
   return (
@@ -92,6 +98,14 @@ export default function AdminOrders() {
             </div>
           </div>
         ))
+      )}
+
+      {showModal && (
+        <Modal title="Acesso Negado" onClose={handleCloseModal}>
+          <p className="text-center text-red-600">
+            ⛔ Esta página é exclusiva para administradores.
+          </p>
+        </Modal>
       )}
     </div>
   );
