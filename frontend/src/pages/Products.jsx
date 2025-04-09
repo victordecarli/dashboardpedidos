@@ -17,20 +17,6 @@ export default function Products() {
       .catch(() => alert('Erro ao carregar produtos'));
   }, []);
 
-  // const adicionarAoCarrinho = (produto) => {
-  //   setCarrinho((prev) => {
-  //     const existe = prev.find((item) => item._id === produto._id);
-  //     if (existe) {
-  //       return prev.map((item) =>
-  //         item._id === produto._id
-  //           ? { ...item, quantity: item.quantity + 1 }
-  //           : item,
-  //       );
-  //     }
-  //     return [...prev, { ...produto, quantity: 1 }];
-  //   });
-  // };
-
   const adicionarAoCarrinho = (produto) => {
     setCarrinho((prev) => {
       const existe = prev.find((item) => item._id === produto._id);
@@ -121,9 +107,10 @@ export default function Products() {
   };
 
   const desativarProduto = async (produtoId) => {
+    const avisoConfirmed = window.confirm("Deseja mesmo excluir?")
+    if (!avisoConfirmed) return;
     try {
       await updateProduct(produtoId, { status: 'inativo' });
-
       setProducts((prevProducts) =>
         prevProducts.map((p) =>
           p._id === produtoId ? { ...p, status: 'inativo' } : p,
