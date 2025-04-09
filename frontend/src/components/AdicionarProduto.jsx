@@ -47,35 +47,41 @@ const AdicionarProduto = ({ onAdicionar }) => {
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Adicionar Produto</h2>
-      <input
-        type="text"
-        placeholder="Nome"
-        value={nome}
-        onChange={(e) => setNome(e.target.value)}
-        className="w-full border p-2 mb-2 rounded"
-      />
-      <input
-        type="number"
-        placeholder="Preço"
-        value={preco}
-        onChange={(e) => setPreco(e.target.value)}
-        className="w-full border p-2 mb-2 rounded"
-      />
-      <input
-        type="number"
-        placeholder="Quantidade"
-        value={quantidade}
-        onChange={(e) => setQuantidade(e.target.value)}
-        className="w-full border p-2 mb-4 rounded"
-      />
-      <button
-        onClick={handleAdicionar}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-      >
-        Adicionar Produto
-      </button>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-2xl shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+          Adicionar Produto
+        </h2>
+
+        <input
+          type="text"
+          placeholder="Nome"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="number"
+          placeholder="Preço"
+          value={preco}
+          onChange={(e) => setPreco(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="number"
+          placeholder="Quantidade"
+          value={quantidade}
+          onChange={(e) => setQuantidade(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg p-3 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <button
+          onClick={handleAdicionar}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg w-full transition duration-200"
+        >
+          Adicionar Produto
+        </button>
+      </div>
     </div>
   );
 };

@@ -169,7 +169,7 @@ export default function Products() {
                     onClick={() => removerDoCarrinho(item._id)}
                     className="bg-gray-200 text-black px-2 py-1 rounded hover:bg-gray-400"
                   >
-                    -
+                    🗑 Excluir
                   </button>
                   <span>{item.quantity}</span>
                   <button
