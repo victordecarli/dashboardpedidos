@@ -123,60 +123,59 @@ export default function Products() {
   };
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <AdminNavbar />
-      <h1 className="text-2xl font-bold mb-4">Cardápio</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="min-h-screen bg-[#f1f5f9]">
+    <AdminNavbar />
+    <main className="max-w-6xl mx-auto px-6 py-10">
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Cardápio</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products
           .filter((product) => product.status === 'ativo')
           .map((product) => (
-            <div key={product._id} className="border p-4 rounded shadow">
-              <h2 className="text-lg font-semibold">{product.name}</h2>
-              <p className="text-sm text-gray-500">
-                {currencyFormat(product.price)}
-              </p>
-              <p>Estoque: {product.stock} Unidades</p>
-              <button
-                className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={() => adicionarAoCarrinho(product)}
-              >
-                Adicionar
-              </button>
+            <div key={product._id} className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 hover:shadow-md transition">
+              <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
+              <p className="text-sm text-gray-600 mt-1">{currencyFormat(product.price)}</p>
+              <p className="text-sm text-gray-500 mb-4">Estoque: {product.stock} Unidades</p>
 
-              {localStorage.getItem('role') === 'admin' && (
+              <div className="flex gap-2">
                 <button
-                  onClick={() => desativarProduto(product._id)}
-                  className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-4"
+                  className="bg-[var(--color-primary)] text-white px-4 py-1.5 rounded-md hover:opacity-90 transition text-sm"
+                  onClick={() => adicionarAoCarrinho(product)}
                 >
-                  Excluir
+                  Adicionar
                 </button>
-              )}
+                {localStorage.getItem('role') === 'admin' && (
+                  <button
+                    onClick={() => desativarProduto(product._id)}
+                    className="bg-red-500 text-white px-4 py-1.5 rounded-md hover:bg-red-600 transition text-sm"
+                  >
+                    Excluir
+                  </button>
+                )}
+              </div>
             </div>
           ))}
       </div>
 
       {carrinho.length > 0 && (
-        <div className="mt-8 border-t pt-4">
-          <h2 className="text-xl font-bold mb-2">Resumo do Pedido</h2>
-          <ul className="mb-4">
+        <div className="mt-10 bg-white rounded-xl p-6 shadow border border-gray-200">
+          <h2 className="text-xl font-bold mb-4 text-gray-900">Resumo do Pedido</h2>
+          <ul className="space-y-4 mb-6">
             {carrinho.map((item) => (
-              <li
-                key={item._id}
-                className="flex items-center justify-between py-2"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="ml-4">{item.name}</span>
+              <li key={item._id} className="flex justify-between items-center">
+                <div className="flex gap-3 items-center">
+                  <span>{item.name}</span>
                   <button
                     onClick={() => removerDoCarrinho(item._id)}
-                    className="bg-gray-300 text-black px-2 py-1 rounded hover:bg-gray-500"
+                    className="bg-gray-200 text-black px-2 py-1 rounded hover:bg-gray-400"
                   >
                     -
                   </button>
-                  <span className="mx-2">{item.quantity}</span>
+                  <span>{item.quantity}</span>
                   <button
                     onClick={() => adicionarAoCarrinho(item)}
                     disabled={item.quantity >= item.stock}
-                    className="bg-gray-300 text-black px-2 py-1 rounded hover:bg-gray-500"
+                    className="bg-gray-200 text-black px-2 py-1 rounded hover:bg-gray-400 disabled:opacity-40"
                   >
                     +
                   </button>
@@ -187,12 +186,14 @@ export default function Products() {
           </ul>
           <button
             onClick={finalizarPedido}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           >
             Finalizar Pedido
           </button>
         </div>
       )}
-    </div>
-  );
+    </main>
+  </div>
+);
+
 }

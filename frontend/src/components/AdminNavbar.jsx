@@ -1,37 +1,48 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { logout } from '../utils/auth';
+// react-icons
+import { ImExit } from 'react-icons/im';
 
 export default function AdminNavbar() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const role = localStorage.getItem('role');
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const navItemClass = (path) =>
+    `px-3 py-1.5 rounded-md transition ${
+      location.pathname === path
+        ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+        : 'text-slate-300 hover:text-white hover:bg-gray-800'
+    }`;
+
   return (
-    <nav className="bg-white shadow flex justify-between items-center px-6 py-3 mb-6">
-      <div className="text-blue-700 font-bold text-lg"> {localStorage.getItem('role') === 'admin' ? 'Admin' : 'User'}</div>
+    <nav className="bg-[#0f172a] text-white flex justify-between items-center px-6 py-3 mb-6">
+      <div className="font-bold text-lg">
+        <span className="font-bold text-lg ">{role === 'admin' ? 'Admin' : 'User'}</span>
+      </div>
       <div className="flex items-center gap-4 text-sm">
-        <Link to="/products" className="hover:underline">
+        <Link to="/products" className={navItemClass('/products')}>
           Produtos
         </Link>
-        <Link to="/orders" className="hover:underline">
+        <Link to="/orders" className={navItemClass('/orders')}>
           Meus Pedidos
         </Link>
-        {localStorage.getItem('role') === 'admin' && (
-          <Link to="/admin-orders" className="hover:underline">
-            Pedidos (Admin)
-          </Link>
-         )}
-        {localStorage.getItem('role') === 'admin' && (
-          <Link to="/products/new" className="hover:underline">
-            + Novo Produto
-          </Link>
+        {role === 'admin' && (
+          <>
+            <Link to="/admin-orders" className={navItemClass('/admin-orders')}>
+              Pedidos (Admin)
+            </Link>
+            <Link to="/products/new" className={navItemClass('/products/new')}>
+              + Novo Produto
+            </Link>
+          </>
         )}
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 ml-2"
-        >
+        <button onClick={handleLogout} className="bg-red-500 cursor-pointer text-white font-bold px-3 py-1 rounded hover:bg-red-400 ml-2 flex gap-2 items-center">
+          <ImExit />
           Sair
         </button>
       </div>

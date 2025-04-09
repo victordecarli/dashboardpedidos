@@ -1,1 +1,36 @@
 @import 'tailwindcss';
+
+/* Definição de tema padrão */
+:root {
+  --color-primary: #4f39f6;
+  --color-primary-dark: #4338ca;
+  --color-background: #f7f8fa;
+  --color-text: #1e1b4b;
+  --color-muted: #6b7280;
+  --color-danger: #ef4444;
+}
+
+/* Futuro: tema escuro */
+[data-theme='dark'] {
+  --color-background: #1f1f2b;
+  --color-text: #f3f4f6;
+  --color-muted: #9ca3af;
+  --color-primary: #8b5cf6;
+}
+
+/* Aplicar as variáveis em base */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Exemplo global de uso */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}

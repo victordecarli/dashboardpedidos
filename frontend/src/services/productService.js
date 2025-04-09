@@ -1,8 +1,8 @@
-import { api } from "./api";
+import { api } from './api';
 
 // Listar produtos (visível para todos)
 export const getProducts = () => {
-  return api.get("/products");
+  return api.get('/products');
 };
 
 // Listar produtos por ID (visível para todos)
@@ -12,7 +12,7 @@ export const getProductById = (id) => {
 
 // Criar produto (admin)
 export const createProduct = async (productData) => {
-  return api.post("/products", productData);
+  return api.post('/products', productData);
 };
 
 // Atualizar produto (admin)
