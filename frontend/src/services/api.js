@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthToken } from '../utils/authStorage';
 
-const API_URL = 'http://localhost:3030/api';
+const API_URL = 'http://localhost:3000/api';
 
 export const api = axios.create({
   baseURL: API_URL,
