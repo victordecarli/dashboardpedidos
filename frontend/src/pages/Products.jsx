@@ -136,76 +136,101 @@ export default function Products() {
   };
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-100 pb-16">
       <AdminNavbar />
-      <h1 className="text-2xl font-bold mb-4">Cardápio</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {products
-          .filter((product) => product.status === 'ativo')
-          .map((product) => (
-            <div key={product._id} className="border p-4 rounded shadow">
-              <h2 className="text-lg font-semibold">{product.name}</h2>
-              <p className="text-sm text-gray-500">
-                {currencyFormat(product.price)}
-              </p>
-              <p>Estoque: {product.stock} Unidades</p>
-              <button
-                className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={() => adicionarAoCarrinho(product)}
-              >
-                Adicionar
-              </button>
+      <div className="max-w-5xl mx-auto px-4 pt-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">🍔 Cardápio</h1>
 
-              {localStorage.getItem('role') === 'admin' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products
+            .filter((product) => product.status === 'ativo')
+            .map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-xl shadow-lg p-4 transition hover:shadow-2xl"
+              >
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {product.name}
+                </h2>
+                <p className="text-green-600 font-medium mt-1">
+                  {currencyFormat(product.price)}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Estoque: {product.stock} unidades
+                </p>
+
                 <button
-                  onClick={() => desativarProduto(product._id)}
-                  className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-4"
+                  className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                  onClick={() => adicionarAoCarrinho(product)}
                 >
-                  Excluir
+                  ➕ Adicionar
                 </button>
-              )}
-            </div>
-          ))}
-      </div>
 
-      {carrinho.length > 0 && (
-        <div className="mt-8 border-t pt-4">
-          <h2 className="text-xl font-bold mb-2">Resumo do Pedido</h2>
-          <ul className="mb-4">
-            {carrinho.map((item) => (
-              <li
-                key={item._id}
-                className="flex items-center justify-between py-2"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="ml-4">{item.name}</span>
+                {localStorage.getItem('role') === 'admin' && (
                   <button
-                    onClick={() => removerDoCarrinho(item._id)}
-                    className="bg-gray-300 text-black px-2 py-1 rounded hover:bg-gray-500"
+                    onClick={() => desativarProduto(product._id)}
+                    className="mt-2 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
                   >
-                    -
+                    🗑 Excluir
                   </button>
-                  <span className="mx-2">{item.quantity}</span>
-                  <button
-                    onClick={() => adicionarAoCarrinho(item)}
-                    disabled={item.quantity >= item.stock}
-                    className="bg-gray-300 text-black px-2 py-1 rounded hover:bg-gray-500"
-                  >
-                    +
-                  </button>
-                </div>
-                <span>{currencyFormat(item.price * item.quantity)}</span>
-              </li>
+                )}
+              </div>
             ))}
-          </ul>
-          <button
-            onClick={finalizarPedido}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Finalizar Pedido
-          </button>
         </div>
-      )}
+
+        {carrinho.length > 0 && (
+          <div className="mt-12 bg-white rounded-xl shadow-md p-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              🧾 Resumo do Pedido
+            </h2>
+
+            <ul className="divide-y divide-gray-200">
+              {carrinho.map((item) => (
+                <li
+                  key={item._id}
+                  className="flex items-center justify-between py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-gray-700">
+                      {item.name}
+                    </span>
+                    <button
+                      onClick={() => removerDoCarrinho(item._id)}
+                      className="bg-gray-200 hover:bg-gray-300 text-black px-3 py-1 rounded"
+                    >
+                      -
+                    </button>
+                    <span className="mx-2 text-gray-700">{item.quantity}</span>
+                    <button
+                      onClick={() => adicionarAoCarrinho(item)}
+                      disabled={item.quantity >= item.stock}
+                      className={`px-3 py-1 rounded ${
+                        item.quantity >= item.stock
+                          ? 'bg-gray-300 cursor-not-allowed'
+                          : 'bg-gray-200 hover:bg-gray-300'
+                      }`}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <span className="font-semibold text-gray-700">
+                    {currencyFormat(item.price * item.quantity)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={finalizarPedido}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow-md transition"
+              >
+                ✅ Finalizar Pedido
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

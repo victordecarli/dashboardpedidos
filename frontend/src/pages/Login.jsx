@@ -21,48 +21,56 @@ export default function Login() {
       localStorage.setItem('role', user.role);
 
       setAuthToken(token);
-
       navigate('/products');
     } catch (err) {
-      setErro('Email ou senha inválidos', err);
+      setErro('Email ou senha inválidos');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300 px-4">
       <form
         onSubmit={handleLogin}
-        className="bg-white p-6 rounded shadow-md w-96"
+        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm animate-fade-in"
       >
-        <h2 className="text-xl font-bold mb-4">Login</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+          Bem-vindo de volta
+        </h2>
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-2 mb-3 border rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <div className="mb-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          placeholder="Senha"
-          className="w-full p-2 mb-3 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="mb-4">
+          <input
+            type="password"
+            placeholder="Senha"
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-        {erro && <p className="text-red-600 text-sm mb-2">{erro}</p>}
+        {erro && (
+          <p className="text-red-500 text-sm mb-4 text-center">{erro}</p>
+        )}
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          className="w-full bg-blue-600 hover:bg-blue-700 transition-colors duration-200 text-white font-medium py-2 rounded-xl shadow-md"
         >
           Entrar
         </button>
-        <p className="mt-4 text-sm text-center">
+
+        <p className="mt-6 text-sm text-center text-gray-600">
           Não tem uma conta?{' '}
           <a href="/register" className="text-blue-600 hover:underline">
             Criar agora

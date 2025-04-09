@@ -23,67 +23,80 @@ export default function Register() {
     try {
       await createUser({
         ...form,
-        role: 'user', // Define como usuário normal
+        role: 'user',
       });
 
       alert('Conta criada com sucesso!');
       navigate('/login');
     } catch (err) {
       console.error(err);
-      setError('❌ Erro ao criar conta.');
+      setError('Erro ao criar conta.');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300 px-4">
       <form
         onSubmit={handleRegister}
-        className="bg-white p-6 rounded shadow-md w-96"
+        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm animate-fade-in"
       >
-        <h2 className="text-xl font-bold mb-4 text-center">Criar Conta</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+          Criar Conta
+        </h2>
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Name"
-          value={form.name}
-          onChange={handleChange}
-          className="w-full p-2 mb-3 border rounded"
-          required
-        />
+        <div className="mb-4">
+          <input
+            type="text"
+            name="name"
+            placeholder="Seu nome"
+            value={form.name}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          />
+        </div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="email@gmail.com"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full p-2 mb-3 border rounded"
-          required
-        />
+        <div className="mb-4">
+          <input
+            type="email"
+            name="email"
+            placeholder="email@email.com"
+            value={form.email}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="••••••••"
-          value={form.password}
-          onChange={handleChange}
-          className="w-full p-2 mb-3 border rounded"
-          required
-        />
+        <div className="mb-4">
+          <input
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            value={form.password}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          />
+        </div>
 
         {error && (
-          <p className="text-red-600 text-sm mb-2 flex items-center gap-1">
-            ❌ {error}
-          </p>
+          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
         )}
 
         <button
           type="submit"
-          className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
+          className="w-full bg-green-600 hover:bg-green-700 transition-colors duration-200 text-white font-medium py-2 rounded-xl shadow-md"
         >
           Criar Conta
         </button>
+
+        <p className="mt-6 text-sm text-center text-gray-600">
+          Já tem uma conta?{' '}
+          <a href="/login" className="text-green-600 hover:underline">
+            Entrar
+          </a>
+        </p>
       </form>
     </div>
   );
