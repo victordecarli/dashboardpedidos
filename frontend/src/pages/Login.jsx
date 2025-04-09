@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { login } from '../services/authService';
 import { setAuthToken } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 // importa SVG background
 import { BackgroundLoginSVG } from '../assets/svgs/backgroundLoginSVG';
 // importar icons
@@ -96,9 +96,9 @@ export default function Login() {
                 />
                 Me manter logado
               </label>
-              <a href="#" className="text-sm text-indigo-600 font-medium hover:underline">
+              {/* <Link to="/forgot-password" className="text-sm text-indigo-600 font-medium hover:underline">
                 Esqueceu sua senha?
-              </a>
+              </Link> */}
             </div>
 
             {erro && <p className="text-red-600 text-sm mb-4">{erro}</p>}

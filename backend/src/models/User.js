@@ -12,6 +12,8 @@ const UserSchema = new Schema({
     match: /[^@]+@[^@]+\.[^@]+/,
     trim: true,
   },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
   password: { type: String, required: true },
   role: {
     type: String,

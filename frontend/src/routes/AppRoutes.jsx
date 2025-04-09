@@ -6,14 +6,16 @@ import AdminOrders from '../pages/AdminOrders';
 import ProductFormAdmin from '../pages/ProductFormAdmin';
 import Register from '../pages/Register';
 import PrivateRoute from './PrivateRoute';
-
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         {/* Rotas protegidas para usuários autenticados */}
         <Route
           path="/products"

@@ -35,3 +35,57 @@ exports.login = async (req, res) => {
   }
 
 };
+
+// 1. Solicita redefinição de senha
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(404).json({ error: 'Usuário não encontrado com esse e-mail.' });
+
+    // Gera token temporário
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiration = Date.now() + 3600000; // 1 hora
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = tokenExpiration;
+    await user.save();
+
+    // Aqui você simuladamente "envia o e-mail" (substitua por serviço real depois)
+    console.log(`🔐 Link de redefinição: http://localhost:3030/reset-password/${resetToken}`);
+
+    res.status(200).json({ message: 'Token de redefinição gerado. Verifique seu e-mail.' });
+  } catch (err) {
+    console.error('Erro ao solicitar redefinição:', err);
+    res.status(500).json({ error: 'Erro interno.' });
+  }
+};
+
+// 2. Redefine a senha
+exports.resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) return res.status(400).json({ error: 'Token inválido ou expirado.' });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Senha redefinida com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao redefinir senha:', err);
+    res.status(500).json({ error: 'Erro interno ao redefinir senha.' });
+  }
+};
