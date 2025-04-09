@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
     // Verifica se JWT_SECRET está definido
     if (!process.env.JWT_SECRET) {
@@ -21,10 +21,11 @@ exports.login = async (req, res) => {
     if (!isMatch) return res.status(401).json({ error: 'Senha incorreta' });
 
     // Gera o token JWT
+    const expiresIn = rememberMe ? '24d' : '12h';
     const token = jwt.sign(
       { id: user._id, name: user.name, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' } // Expira em 7 dias
+      { expiresIn}
     );
 
     res.json({ token, user: { id: user._id, name: user.name, role: user.role } });

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { getAuthToken } from '../utils/authStorage';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:3030/api';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -10,12 +11,13 @@ export const api = axios.create({
 });
 
 export const setAuthToken = (token) => {
-  if (token) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  const finalToken = token || getAuthToken();
+
+  if (finalToken) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${finalToken}`;
   } else {
     delete api.defaults.headers.common['Authorization'];
   }
 };
 
-const token = localStorage.getItem('token');
-setAuthToken(token);
+setAuthToken();

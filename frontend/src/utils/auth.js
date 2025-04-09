@@ -1,12 +1,13 @@
+import { getAuthToken, getUserRole as getStoredRole, clearAuth } from './authStorage';
+
 export const isAuthenticated = () => {
-  return !!localStorage.getItem('token');
+  return !!getAuthToken();
 };
 
 export const getUserRole = () => {
-  return localStorage.getItem('role');
+  return getStoredRole();
 };
 
 export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('role');
+  clearAuth();
 };
