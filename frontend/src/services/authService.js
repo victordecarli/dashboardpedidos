@@ -6,5 +6,5 @@ export const login = async (credentials) => {
 
 // Criação de usuário
 export const register = (data) => {
-  return api.post('/auth/register', data); // ou /users, depende da sua API
+  return api.post('/auth/register', data);
 };

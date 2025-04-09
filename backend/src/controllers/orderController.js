@@ -109,7 +109,7 @@ exports.createOrder = async (req, res) => {
 };
 
 // 📌 Buscar todos os pedidos  (READ)
-exports.getOrders = async (req, res) => {
+exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({})
       .populate('user', 'name email')

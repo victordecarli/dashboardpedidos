@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getOrders, updateOrder } from '../services/index';
+import { getAllOrders, updateOrder } from '../services/index';
 import { currencyFormat } from '../utils/currencyFormat';
 import AdminNavbar from '../components/AdminNavbar';
 import Modal from '../components/Modal';
@@ -32,7 +32,7 @@ export default function AdminOrders() {
   };
 
   const fetchOrders = () => {
-    getOrders()
+    getAllOrders()
       .then((res) => {
         setOrders(res.data.data);
         setLoading(false);

@@ -17,7 +17,7 @@ export const getOrderById = (id) => {
 };
 
 // Buscar todos os pedidos (admin)
-export const getOrders = () => {
+export const getAllOrders = () => {
   return api.get('/orders');
 };
 
