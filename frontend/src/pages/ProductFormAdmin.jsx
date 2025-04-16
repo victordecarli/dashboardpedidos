@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { createProduct } from '../services/productService';
 import { useNavigate } from 'react-router-dom';
-import AdminNavbar from '../components/AdminNavbar';
 import Modal from '../components/Modal';
 import { getUserRole } from '../utils/auth';
 import { PhotoIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { currencyFormat } from '../utils/currencyFormat';
+import MainNavbar from '../components/MainNavbar';
 
 export default function ProductFormAdmin() {
   const [form, setForm] = useState({
@@ -108,7 +108,7 @@ export default function ProductFormAdmin() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminNavbar />
+      <MainNavbar />
       {showModal && (
         <Modal
           onClose={() => {

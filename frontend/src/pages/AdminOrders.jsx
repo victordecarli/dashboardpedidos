@@ -1,16 +1,8 @@
 import { useEffect, useState, Fragment } from 'react';
 import { getAllOrders, updateOrder } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
-import AdminNavbar from '../components/AdminNavbar';
-import {
-  ClockIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ArrowPathIcon,
-  ExclamationTriangleIcon,
-} from '@heroicons/react/24/outline';
+import MainNavbar from '../components/MainNavbar';
+import { Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, RotateCw, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AdminOrders() {
@@ -104,13 +96,13 @@ export default function AdminOrders() {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'processando':
-        return <ClockIcon className="w-5 h-5 text-yellow-500" />;
+        return <Clock size={20} className="text-yellow-500" />;
       case 'finalizado':
-        return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
+        return <CheckCircle size={20} className="text-green-500" />;
       case 'cancelado':
-        return <XCircleIcon className="w-5 h-5 text-red-500" />;
+        return <XCircle size={20} className="text-red-500" />;
       default:
-        return <ClockIcon className="w-5 h-5 text-gray-500" />;
+        return <Clock size={20} className="text-gray-500" />;
     }
   };
 
@@ -130,9 +122,9 @@ export default function AdminOrders() {
   if (!isAdmin) {
     return (
       <>
-        <AdminNavbar />
+        <MainNavbar />
         <div className="max-w-6xl mx-auto px-4 py-20 text-center">
-          <ExclamationTriangleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <AlertTriangle size={64} className="text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Acesso Restrito</h1>
           <p className="text-gray-600">
             Você não tem permissão para acessar esta página. Esta área é exclusiva para administradores.
@@ -144,7 +136,7 @@ export default function AdminOrders() {
 
   return (
     <>
-      <AdminNavbar />
+      <MainNavbar />
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -155,7 +147,7 @@ export default function AdminOrders() {
             onClick={loadOrders}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <ArrowPathIcon className="w-4 h-4" />
+            <RotateCw size={16} />
             Atualizar Pedidos
           </button>
         </div>
@@ -281,11 +273,7 @@ export default function AdminOrders() {
                               onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                               className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 px-2 py-1 rounded border border-gray-200 transition-colors ml-1"
                             >
-                              {expandedOrder === order.id ? (
-                                <ChevronUpIcon className="w-4 h-4" />
-                              ) : (
-                                <ChevronDownIcon className="w-4 h-4" />
-                              )}
+                              {expandedOrder === order.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                             </button>
                           </div>
                         </td>

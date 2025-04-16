@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getOrdersByUser } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
-import AdminNavbar from '../components/AdminNavbar';
-import { ClockIcon, CheckCircleIcon, XCircleIcon, ArrowLeftIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
+import MainNavbar from '../components/MainNavbar';
+import { Clock, CheckCircle, XCircle, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -69,13 +69,13 @@ export default function Orders() {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'processando':
-        return <ClockIcon className="w-5 h-5 text-yellow-500" />;
+        return <Clock size={20} className="text-yellow-500" />;
       case 'finalizado':
-        return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
+        return <CheckCircle size={20} className="text-green-500" />;
       case 'cancelado':
-        return <XCircleIcon className="w-5 h-5 text-red-500" />;
+        return <XCircle size={20} className="text-red-500" />;
       default:
-        return <ClockIcon className="w-5 h-5 text-gray-500" />;
+        return <Clock size={20} className="text-gray-500" />;
     }
   };
 
@@ -94,12 +94,12 @@ export default function Orders() {
 
   return (
     <>
-      <AdminNavbar />
+      <MainNavbar />
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Meus Pedidos</h1>
           <Link to="/products" className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5">
-            <ArrowLeftIcon className="w-4 h-4" />
+            <ArrowLeft size={16} />
             Voltar às compras
           </Link>
         </div>
@@ -115,7 +115,7 @@ export default function Orders() {
           </div>
         ) : orders.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-10 text-center">
-            <ShoppingBagIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <ShoppingBag size={64} className="text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Nenhum pedido encontrado</h2>
             <p className="text-gray-500 mb-6">Você ainda não fez nenhum pedido.</p>
             <Link
