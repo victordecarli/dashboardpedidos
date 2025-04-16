@@ -42,7 +42,6 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
         price: parseFloat(form.price),
         stock: parseInt(form.stock),
       });
-      toast.success('Produto atualizado!');
     } catch {
       toast.error('Erro ao salvar produto');
     } finally {

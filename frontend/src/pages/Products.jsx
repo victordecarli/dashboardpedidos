@@ -48,76 +48,70 @@ export default function Products() {
   }, [isAdmin]);
 
   const adicionarAoCarrinho = (produto) => {
-    setCarrinho((prev) => {
-      const existe = prev.find((item) => item._id === produto._id);
-      const quantidadeAtual = existe ? existe.quantity : 0;
+    const existe = carrinho.find((item) => item._id === produto._id);
+    const quantidadeAtual = existe ? existe.quantity : 0;
 
-      if (quantidadeAtual >= produto.stock) {
-        toast.error(`❌ Estoque máximo atingido para: ${produto.name}`);
-        return prev;
-      }
+    if (quantidadeAtual >= produto.stock) {
+      toast.error(`❌ Estoque máximo atingido para: ${produto.name}`);
+      return;
+    }
 
-      const novoCarrinho = existe
-        ? prev.map((item) => (item._id === produto._id ? { ...item, quantity: item.quantity + 1 } : item))
-        : [...prev, { ...produto, quantity: 1 }];
+    const novoCarrinho = existe
+      ? carrinho.map((item) => (item._id === produto._id ? { ...item, quantity: item.quantity + 1 } : item))
+      : [...carrinho, { ...produto, quantity: 1 }];
 
-      const novaQuantidadeTotal = quantidadeAtual + 1;
-      const novoEstoqueRestante = produto.stock - novaQuantidadeTotal;
+    const novaQuantidadeTotal = quantidadeAtual + 1;
+    const novoEstoqueRestante = produto.stock - novaQuantidadeTotal;
 
-      if (novoEstoqueRestante === 0) {
-        updateProduct(produto._id, { active: false }).then(() => {
-          fetchProducts();
-        });
-      }
+    setCarrinho(novoCarrinho);
+    setCarrinhoAberto(true);
+    toast.success(`Adicionado ao carrinho: ${produto.name}`);
 
-      toast.success(`Adicionado ao carrinho: ${produto.name}`);
-      setCarrinhoAberto(true);
-      return novoCarrinho;
-    });
+    if (novoEstoqueRestante === 0) {
+      updateProduct(produto._id, { active: false }).then(() => {
+        fetchProducts();
+      });
+    }
   };
 
   const salvarEdicaoProduto = async (dadosAtualizados) => {
     try {
       await updateProduct(editProduct._id, dadosAtualizados);
-      fetchProducts();
       setEditModalOpen(false);
       setEditProduct(null);
+      await fetchProducts();
       toast.success('Produto atualizado com sucesso!');
     } catch (err) {
-      toast.error('Erro ao atualizar produto');
       console.error(err);
+      toast.error('Erro ao atualizar produto');
     }
   };
 
   const removerDoCarrinho = (produtoId) => {
-    setCarrinho((prev) => {
-      const produtoNoCarrinho = prev.find((item) => item._id === produtoId);
-      if (!produtoNoCarrinho) return prev;
+    const produtoNoCarrinho = carrinho.find((item) => item._id === produtoId);
+    if (!produtoNoCarrinho) return;
 
-      const novaQuantidade = produtoNoCarrinho.quantity - 1;
-      const novoCarrinho = prev
-        .map((item) => (item._id === produtoId ? { ...item, quantity: novaQuantidade } : item))
-        .filter((item) => item.quantity > 0);
+    const novaQuantidade = produtoNoCarrinho.quantity - 1;
+    const novoCarrinho = carrinho
+      .map((item) => (item._id === produtoId ? { ...item, quantity: novaQuantidade } : item))
+      .filter((item) => item.quantity > 0);
 
-      const novoEstoque = produtoNoCarrinho.stock - novaQuantidade;
+    const novoEstoque = produtoNoCarrinho.stock - novaQuantidade;
 
-      if (novoEstoque >= 1 && produtoNoCarrinho.status === 'inativo') {
-        updateProduct(produtoId, { status: 'ativo' }).then(() => {
-          fetchProducts();
-        });
-      }
+    setCarrinho(novoCarrinho);
+    toast('Produto removido do carrinho', { icon: '🗑' });
 
-      toast('Produto removido do carrinho', { icon: '🗑' });
-      return novoCarrinho;
-    });
+    if (novoEstoque >= 1 && produtoNoCarrinho.status === 'inativo') {
+      updateProduct(produtoId, { status: 'ativo' }).then(() => {
+        fetchProducts();
+      });
+    }
   };
 
   const removerItemCompleto = (produtoId) => {
-    setCarrinho((prev) => {
-      const novoCarrinho = prev.filter((item) => item._id !== produtoId);
-      toast('Item removido do carrinho', { icon: '🗑' });
-      return novoCarrinho;
-    });
+    const novoCarrinho = carrinho.filter((item) => item._id !== produtoId);
+    setCarrinho(novoCarrinho);
+    toast('Item removido do carrinho', { icon: '🗑' });
   };
 
   const finalizarPedido = async () => {
