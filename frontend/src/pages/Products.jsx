@@ -41,7 +41,7 @@ export default function Products() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState('list');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
@@ -553,8 +553,8 @@ export default function Products() {
                       : 'bg-white border-transparent hover:shadow-lg hover:border-indigo-100'
                   }`}
                 >
-                  <div className="flex flex-row w-full">
-                    <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-50 flex-shrink-0 overflow-hidden">
+                  <div className="flex flex-row w-full items-center">
+                    <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 overflow-hidden">
                       {product.image ? (
                         <div className="relative group h-full">
                           <img
