@@ -2,34 +2,47 @@ import { useEffect, useState } from 'react';
 import { getOrdersByUser } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
 import AdminNavbar from '../components/AdminNavbar';
+import { ClockIcon, CheckCircleIcon, XCircleIcon, ArrowLeftIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
+import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
-    getOrdersByUser()
-      .then((res) => {
-        setOrders(res.data?.data || []);
-      })
-      .catch((err) => {
-        console.error(err);
-        alert('Erro ao carregar pedidos.');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    fetchOrders();
   }, []);
 
-  // Função para formatar datas de forma segura
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const response = await getOrdersByUser();
+      setOrders(response.data?.data || []);
+    } catch (error) {
+      console.error('Erro ao buscar pedidos:', error);
+      toast.error('Não foi possível carregar seus pedidos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadOrderDetails = (orderId) => {
+    if (selectedOrder === orderId) {
+      setSelectedOrder(null);
+      return;
+    }
+    setSelectedOrder(orderId);
+  };
+
+  // Formata data de forma segura
   const formatDate = (dateString) => {
     if (!dateString) return 'Data não disponível';
 
     try {
-      // Tenta converter diretamente
       const date = new Date(dateString);
 
-      // Se a data for válida, retorna formatada
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString('pt-BR', {
           day: '2-digit',
@@ -38,92 +51,175 @@ export default function Orders() {
         });
       }
 
-      // Se a string tiver o formato ISO ou algo semelhante, tenta extrair partes
+      // Tenta extrair data usando regex se a string tiver formato ISO
       if (typeof dateString === 'string') {
-        // Tenta extrair data usando regex
         const dataParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
         if (dataParts) {
           const [_, ano, mes, dia] = dataParts;
           return `${dia}/${mes}/${ano}`;
         }
-
-        // Se tiver timestamp ou data dentro de um objeto
-        if (dateString.includes('$date')) {
-          try {
-            const parsedObj = JSON.parse(dateString);
-            if (parsedObj.$date) {
-              const timestamp = new Date(parsedObj.$date);
-              if (!isNaN(timestamp.getTime())) {
-                return timestamp.toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                });
-              }
-            }
-          } catch {
-            // Ignora erro de parse JSON
-          }
-        }
       }
 
-      // Se tudo falhar, retorna a string original
       return dateString;
     } catch {
-      // Em caso de erro, retorna a string original em vez de mensagem de erro
       return dateString;
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'processando':
+        return <ClockIcon className="w-5 h-5 text-yellow-500" />;
+      case 'finalizado':
+        return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
+      case 'cancelado':
+        return <XCircleIcon className="w-5 h-5 text-red-500" />;
+      default:
+        return <ClockIcon className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'processando':
+        return 'bg-yellow-50 text-yellow-800 border-yellow-200';
+      case 'finalizado':
+        return 'bg-green-50 text-green-800 border-green-200';
+      case 'cancelado':
+        return 'bg-red-50 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-50 text-gray-800 border-gray-200';
     }
   };
 
   return (
     <>
       <AdminNavbar />
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <h1 className="text-2xl font-bold mb-4">Meus Pedidos</h1>
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Meus Pedidos</h1>
+          <Link to="/products" className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5">
+            <ArrowLeftIcon className="w-4 h-4" />
+            Voltar às compras
+          </Link>
+        </div>
 
         {loading ? (
-          <p className="text-gray-500">Carregando pedidos...</p>
-        ) : orders.length === 0 ? (
-          <p className="text-gray-500">Nenhum pedido encontrado.</p>
-        ) : (
-          orders.map((order) => (
-            <div key={order.id} className="border p-4 rounded mb-4 shadow-sm bg-white">
-              <div className="flex justify-between items-center mb-2">
-                <h2 className="font-semibold">Pedido #{order.id.slice(-6)}</h2>
-                <span className="text-sm text-gray-600">{formatDate(order.data_pedido)}</span>
-              </div>
-
-              <ul className="text-sm mb-2">
-                {order.products?.map((item, idx) => (
-                  <li key={idx} className="flex justify-between">
-                    <span>
-                      {item.product_name} x{item.quantity}
-                    </span>
-                    <span>{currencyFormat(item.price * item.quantity)}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-sm font-medium text-gray-700">Total:</span>
-                <span className="text-lg font-bold">{currencyFormat(order.total)}</span>
-              </div>
-
-              <div className="mt-1 text-sm">
-                <span
-                  className={`px-2 py-1 rounded font-medium ${
-                    order.status === 'pendente'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : order.status === 'concluído'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {order.status}
-                </span>
-              </div>
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="animate-pulse flex space-x-2 mb-3">
+              <div className="h-3 w-3 bg-gray-300 rounded-full"></div>
+              <div className="h-3 w-3 bg-gray-300 rounded-full"></div>
+              <div className="h-3 w-3 bg-gray-300 rounded-full"></div>
             </div>
-          ))
+            <p className="text-gray-500 font-medium">Carregando seus pedidos...</p>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-10 text-center">
+            <ShoppingBagIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Nenhum pedido encontrado</h2>
+            <p className="text-gray-500 mb-6">Você ainda não fez nenhum pedido.</p>
+            <Link
+              to="/products"
+              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+            >
+              Começar a comprar
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${
+                  selectedOrder === order.id ? 'ring-2 ring-blue-500' : ''
+                }`}
+              >
+                <div className="p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-lg font-semibold text-gray-900">Pedido #{order.id.slice(-6)}</h2>
+                        <div
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(
+                            order.status,
+                          )}`}
+                        >
+                          {getStatusIcon(order.status)}
+                          {order.status}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-500">Realizado em {formatDate(order.data_pedido)}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <p className="text-lg font-bold text-blue-600">{currencyFormat(order.total)}</p>
+                      <button
+                        onClick={() => loadOrderDetails(order.id)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                          selectedOrder === order.id
+                            ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                        } transition-colors`}
+                      >
+                        {selectedOrder === order.id ? 'Ocultar detalhes' : 'Ver detalhes'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {selectedOrder === order.id && (
+                    <div className="mt-4 border-t border-gray-100 pt-4">
+                      <h3 className="text-sm font-medium text-gray-700 mb-3">Itens do Pedido</h3>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Produto
+                              </th>
+                              <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Quantidade
+                              </th>
+                              <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Preço Unitário
+                              </th>
+                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Subtotal
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {order.products?.map((item, index) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
+                                  {item.product_name}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-medium">
+                                  {item.quantity}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
+                                  {currencyFormat(item.price)}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium">
+                                  {currencyFormat(item.price * item.quantity)}
+                                </td>
+                              </tr>
+                            ))}
+                            <tr className="bg-gray-50">
+                              <td colSpan={3} className="px-4 py-3 text-sm font-medium text-gray-700 text-right">
+                                Total:
+                              </td>
+                              <td className="px-4 py-3 text-sm font-bold text-blue-600 text-right">
+                                {currencyFormat(order.total)}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </>

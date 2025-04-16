@@ -123,7 +123,7 @@ export default function ProductFormAdmin() {
 
       {!showModal && (
         <div className="max-w-7xl mx-auto px-4 py-10">
-          <div className="mb-8 flex items-center gap-4">
+          <div className="mb-8 flex items-start flex-col gap-4">
             <button
               onClick={() => navigate('/products')}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900"

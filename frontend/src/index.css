@@ -34,3 +34,7 @@ body {
 .btn-primary:hover {
   background-color: var(--color-primary-dark);
 }
+
+button {
+  cursor: pointer;
+}
