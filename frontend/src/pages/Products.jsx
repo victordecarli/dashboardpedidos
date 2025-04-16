@@ -15,6 +15,8 @@ export default function Products() {
   const [selectedProduct, setSelectedProduct] = useState();
   const [editProduct, setEditProduct] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
 
   const navigate = useNavigate();
   const isAdmin = getUserRole()?.toLowerCase() === 'admin';
@@ -132,11 +134,37 @@ export default function Products() {
     <div className="min-h-screen bg-[#f1f5f9]">
       <AdminNavbar />
       <main className="max-w-6xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Cardápio</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Cardápio</h1>
+
+        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <input
+            type="text"
+            placeholder="🔍 Buscar produto..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+
+          {isAdmin && (
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="todos">Todos</option>
+              <option value="ativo">Somente Ativos</option>
+              <option value="inativo">Somente Inativos</option>
+            </select>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products
-            .filter((product) => isAdmin || product.status === 'ativo')
+            .filter((product) => {
+              const matchSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+              const matchStatus = statusFilter === 'todos' || product.status === statusFilter || !isAdmin;
+              return matchSearch && matchStatus;
+            })
             .map((product) => {
               const inativo = product.status === 'inativo';
 
