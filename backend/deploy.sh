@@ -21,11 +21,11 @@ node generate-ssl-certs.js
 
 # Parar a aplicação atual se estiver rodando
 echo "Parando aplicação atual..."
-pm2 stop lojavirus-api 2>/dev/null || true
+pm2 stop lojavirtual-api 2>/dev/null || true
 
 # Reiniciar a aplicação com as novas configurações
 echo "Iniciando aplicação com HTTPS..."
-pm2 start src/server.js --name lojavirus-api
+pm2 start src/server.js --name lojavirtual-api
 
 # Salvar configuração do PM2
 echo "Salvando configuração do PM2..."
@@ -33,4 +33,4 @@ pm2 save
 
 echo "Implantação concluída! O servidor está rodando com HTTPS."
 echo "Para verificar o status, execute: pm2 status"
-echo "Para ver os logs, execute: pm2 logs lojavirus-api" 
+echo "Para ver os logs, execute: pm2 logs lojavirtual-api" 
