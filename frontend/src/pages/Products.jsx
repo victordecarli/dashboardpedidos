@@ -495,7 +495,7 @@ export default function Products() {
                   <div className="relative">
                     <div className="aspect-[4/3] bg-gray-50 overflow-hidden">
                       {product.image ? (
-                        <div className="relative group h-full">
+                        <div className="relative group h-full w-full flex items-center justify-center text-center">
                           <img
                             src={getImageUrl(product.image)}
                             alt={product.name}
@@ -609,7 +609,7 @@ export default function Products() {
                       : 'bg-white border-transparent hover:shadow-lg hover:border-indigo-100'
                   }`}
                 >
-                  <div className="flex flex-row w-full items-center">
+                  <div className="flex flex-row w-full h-full justify-center text-center pl-3 items-center">
                     <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 overflow-hidden">
                       {product.image ? (
                         <div className="relative group h-full">
