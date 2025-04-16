@@ -194,10 +194,13 @@ export default function MainNavbar() {
             <Motion.div
               key="mobile-menu-content"
               variants={menuContentVariants}
-              className="fixed left-0 top-0 h-full w-[85%] max-w-xs z-[1000] bg-indigo-950 shadow-lg pt-20 px-4 overflow-y-auto flex flex-col"
+              className="fixed left-0 top-0 h-full w-full z-[1000] bg-indigo-950 shadow-lg pt-20 px-4 overflow-y-auto flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col gap-2">
+                <button onClick={closeMobileMenu} className="absolute top-4 right-4 text-indigo-100 hover:text-white">
+                  <X size={24} />
+                </button>
                 {!isAdmin && (
                   <Link to="/dashboard" className={mobileNavItemClass('/dashboard')} onClick={closeMobileMenu}>
                     <LayoutDashboard size={20} />

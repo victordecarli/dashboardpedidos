@@ -640,7 +640,7 @@ export default function Products() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="fixed inset-x-0 bottom-0 z-[998] overflow-hidden flex items-end md:items-start md:inset-auto md:top-20 md:right-6 md:left-auto md:bottom-auto md:w-96"
+              className="fixed inset-x-0 bottom-0 z-[998] overflow-hidden flex items-end md:items-start md:inset-auto md:top-20 md:right-6 md:left-auto md:bottom-auto md:w-[30rem]"
             >
               <motion.div
                 initial={{ opacity: 0 }}
@@ -649,17 +649,17 @@ export default function Products() {
                 className="fixed inset-0 bg-black/50 -z-10"
                 onClick={() => setCarrinhoAberto(false)}
               />
-              <div className="relative bg-white rounded-t-xl md:rounded-xl shadow-xl border border-gray-200 max-h-[80vh] md:max-h-[calc(100vh-120px)] flex flex-col w-full md:w-auto overflow-hidden">
+              <div className="relative bg-white rounded-t-xl md:rounded-xl shadow-xl border border-gray-200 max-h-[80vh] md:max-h-[calc(100vh-120px)] flex flex-col w-full overflow-hidden">
                 <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b border-gray-200 flex justify-between items-center rounded-t-xl">
                   <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <ShoppingCartIcon className="w-5 h-5 text-indigo-600" />
+                    <ShoppingCartIcon className="w-6 h-6 text-indigo-600" />
                     Seu Carrinho
                   </h2>
                   <button
                     onClick={() => setCarrinhoAberto(false)}
                     className="text-gray-400 hover:text-gray-600 p-1.5 hover:bg-gray-100 rounded-full transition-all duration-200"
                   >
-                    <XMarkIcon className="w-5 h-5" />
+                    <XMarkIcon className="w-6 h-6" />
                   </button>
                 </div>
 

@@ -96,7 +96,7 @@ export default function Orders() {
     <>
       <MainNavbar />
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Meus Pedidos</h1>
           <Link to="/products" className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5">
             <ArrowLeft size={16} />
