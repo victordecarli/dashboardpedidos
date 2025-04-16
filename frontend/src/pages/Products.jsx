@@ -157,7 +157,6 @@ export default function Products() {
       toast.success(
         () => (
           <div className="flex items-start">
-            <CheckCircleIcon className="w-6 h-6 text-green-500 mr-2 flex-shrink-0" />
             <div>
               <p className="font-medium">Pedido realizado com sucesso!</p>
               <p className="text-sm mt-1">
