@@ -1,7 +1,14 @@
 import axios from 'axios';
 import { getAuthToken, clearAuth } from '../utils/authStorage';
 
-const API_URL = 'http://localhost:3030/api';
+// Determina a URL base da API dinamicamente
+const getCurrentHost = () => {
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname;
+  return `${protocol}//${hostname}:3030/api`;
+};
+
+const API_URL = getCurrentHost();
 
 export const api = axios.create({
   baseURL: API_URL,
