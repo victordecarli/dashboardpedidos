@@ -1,6 +1,9 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const emailService = require('../services/emailService');
+const logger = require('../utils/logger');
 
 exports.login = async (req, res) => {
   try {
@@ -8,7 +11,7 @@ exports.login = async (req, res) => {
 
     // Verifica se JWT_SECRET está definido
     if (!process.env.JWT_SECRET) {
-      console.error("⚠️ ERRO: JWT_SECRET não está definido no .env!");
+      logger.error("JWT_SECRET não está definido no .env!");
       return res.status(500).json({ error: "Erro interno do servidor" });
     }
 
@@ -28,12 +31,12 @@ exports.login = async (req, res) => {
       { expiresIn}
     );
 
+    logger.info(`Usuário logado com sucesso: ${user.email}`);
     res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
   } catch (err) {
-    console.error("Erro no login:", err);
+    logger.error("Erro no login:", err);
     res.status(500).json({ error: "Erro ao fazer login. Tente novamente." });
   }
-
 };
 
 // 1. Solicita redefinição de senha
@@ -53,13 +56,31 @@ exports.forgotPassword = async (req, res) => {
     user.resetPasswordExpires = tokenExpiration;
     await user.save();
 
-    // Aqui você simuladamente "envia o e-mail" (substitua por serviço real depois)
-    console.log(`🔐 Link de redefinição: http://localhost:3030/reset-password/${resetToken}`);
-
-    res.status(200).json({ message: 'Token de redefinição gerado. Verifique seu e-mail.' });
+    try {
+      // Envio de email usando o serviço
+      await emailService.sendPasswordResetEmail(email, resetToken);
+      logger.info(`Email de redefinição enviado para: ${email}`);
+      
+      res.status(200).json({ 
+        message: 'Link de redefinição enviado para seu email. Por favor, verifique sua caixa de entrada.' 
+      });
+    } catch (emailError) {
+      logger.error('Falha ao enviar email de redefinição:', emailError);
+      
+      // Geramos o link, mas falhou o envio - exibimos no log para desenvolvimento
+      if (process.env.NODE_ENV !== 'production') {
+        const resetLink = `http://localhost:3030/reset-password/${resetToken}`;
+        logger.info(`[DEV] Link de redefinição para ${email}: ${resetLink}`);
+      }
+      
+      res.status(500).json({ 
+        error: 'Falha ao enviar o email. Por favor, tente novamente mais tarde.',
+        devMessage: process.env.NODE_ENV !== 'production' ? 'Verifique o console para o link' : undefined
+      });
+    }
   } catch (err) {
-    console.error('Erro ao solicitar redefinição:', err);
-    res.status(500).json({ error: 'Erro interno.' });
+    logger.error('Erro ao solicitar redefinição:', err);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
 
@@ -69,6 +90,11 @@ exports.resetPassword = async (req, res) => {
   const { password } = req.body;
 
   try {
+    // Validação de força de senha
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres.' });
+    }
+    
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() },
@@ -82,10 +108,10 @@ exports.resetPassword = async (req, res) => {
     user.resetPasswordExpires = undefined;
 
     await user.save();
-
+    logger.info(`Senha redefinida com sucesso para o usuário: ${user.email}`);
     res.status(200).json({ message: 'Senha redefinida com sucesso!' });
   } catch (err) {
-    console.error('Erro ao redefinir senha:', err);
+    logger.error('Erro ao redefinir senha:', err);
     res.status(500).json({ error: 'Erro interno ao redefinir senha.' });
   }
 };
