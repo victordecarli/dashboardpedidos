@@ -30,6 +30,7 @@ import {
 } from '@heroicons/react/24/outline';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
+import { getImageUrl } from '../services/api';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -436,20 +437,36 @@ export default function Products() {
                   }`}
                 >
                   <div className="relative">
-                    <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
+                    <div className="aspect-[4/3] bg-gray-50 overflow-hidden">
                       {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-full object-cover transition-all duration-500 hover:scale-105"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/400x300?text=Imagem+indisponível';
-                          }}
-                        />
+                        <div className="relative group h-full">
+                          <img
+                            src={getImageUrl(product.image)}
+                            alt={product.name}
+                            className="w-full h-full object-contain p-4 transition-all duration-300 group-hover:scale-110"
+                            onError={(e) => {
+                              if (e.target.getAttribute('data-error-handled')) return;
+                              e.target.setAttribute('data-error-handled', 'true');
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = `
+                                <div class="w-full h-full flex items-center justify-center bg-gray-50">
+                                  <div class="flex flex-col items-center justify-center">
+                                    <svg class="w-12 h-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">Imagem não disponível</p>
+                                  </div>
+                                </div>
+                              `;
+                            }}
+                          />
+                        </div>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <PhotoIcon className="w-12 h-12 text-gray-300" />
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                          <div className="flex flex-col items-center justify-center">
+                            <PhotoIcon className="w-12 h-12 text-gray-400" />
+                            <p className="mt-2 text-sm text-gray-500">Sem imagem</p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -537,20 +554,33 @@ export default function Products() {
                   }`}
                 >
                   <div className="flex flex-row w-full">
-                    <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-100 flex-shrink-0">
+                    <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-50 flex-shrink-0 overflow-hidden">
                       {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/128?text=Imagem';
-                          }}
-                        />
+                        <div className="relative group h-full">
+                          <img
+                            src={getImageUrl(product.image)}
+                            alt={product.name}
+                            className="w-full h-full object-contain p-3 transition-all duration-300 group-hover:scale-110"
+                            onError={(e) => {
+                              if (e.target.getAttribute('data-error-handled')) return;
+                              e.target.setAttribute('data-error-handled', 'true');
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = `
+                                <div class="w-full h-full flex items-center justify-center bg-gray-50">
+                                  <div class="flex flex-col items-center justify-center">
+                                    <svg class="w-12 h-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">Imagem não disponível</p>
+                                  </div>
+                                </div>
+                              `;
+                            }}
+                          />
+                        </div>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <PhotoIcon className="w-8 h-8 text-gray-300" />
+                        <div className="w-24 h-24 md:w-32 md:h-32 flex items-center justify-center bg-gray-50">
+                          <PhotoIcon className="w-8 h-8 text-gray-400" />
                         </div>
                       )}
                     </div>

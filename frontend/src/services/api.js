@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { getAuthToken, clearAuth } from '../utils/authStorage';
 
-const API_URL = 'http://localhost:3030/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3030';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -9,6 +10,14 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Função para obter a URL completa de uma imagem
+export const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  // Remover a barra inicial se existir para evitar dupla barra
+  const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+  return `${SERVER_URL}/${cleanPath}`;
+};
 
 export const setAuthToken = (token) => {
   const finalToken = token || getAuthToken();
