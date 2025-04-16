@@ -1,12 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { isAuthenticated } from '../utils/auth';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Verifique se o usuário já está autenticado ao carregar a página
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/products');
+    }
+  }, [navigate]);
 
   // Validação básica de email
   const isValidEmail = (email) => {

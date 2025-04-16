@@ -5,6 +5,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { BackgroundLoginSVG } from '../assets/svgs/backgroundLoginSVG';
 import { IoEye, IoEyeOff } from 'react-icons/io5';
 import { storeAuth } from '../utils/authStorage';
+import { isAuthenticated } from '../utils/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -14,6 +15,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Verifique se o usuário já está autenticado ao carregar a página
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/products');
+    }
+  }, [navigate]);
 
   // Verifique se a sessão expirou
   useEffect(() => {
