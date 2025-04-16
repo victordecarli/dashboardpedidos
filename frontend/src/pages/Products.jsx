@@ -24,6 +24,8 @@ import {
   ArchiveBoxIcon,
   CurrencyDollarIcon,
   ExclamationCircleIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
 } from '@heroicons/react/24/outline';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,6 +45,7 @@ export default function Products() {
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [priceSort, setPriceSort] = useState(null);
 
   const navigate = useNavigate();
   const isAdmin = getUserRole()?.toLowerCase() === 'admin';
@@ -181,6 +184,16 @@ export default function Products() {
     return matchSearch && matchStatus && matchMin && matchMax;
   });
 
+  // Ordenação de produtos
+  const produtosOrdenados = [...produtosFiltrados].sort((a, b) => {
+    if (priceSort === 'asc') {
+      return a.price - b.price;
+    } else if (priceSort === 'desc') {
+      return b.price - a.price;
+    }
+    return 0;
+  });
+
   // Cálculo do total do carrinho
   const totalCarrinho = carrinho.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const totalItens = carrinho.reduce((acc, item) => acc + item.quantity, 0);
@@ -295,6 +308,33 @@ export default function Products() {
                 </span>
               )}
             </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPriceSort(priceSort === 'asc' ? null : 'asc')}
+                className={`p-2 rounded-lg flex items-center gap-1 ${
+                  priceSort === 'asc'
+                    ? 'bg-indigo-100 text-indigo-600 border border-indigo-200'
+                    : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+                } transition-all duration-200`}
+                title="Ordenar por menor preço"
+              >
+                <ArrowUpIcon className="w-4 h-4" />
+                <span className="text-sm hidden sm:inline">Menor preço</span>
+              </button>
+              <button
+                onClick={() => setPriceSort(priceSort === 'desc' ? null : 'desc')}
+                className={`p-2 rounded-lg flex items-center gap-1 ${
+                  priceSort === 'desc'
+                    ? 'bg-indigo-100 text-indigo-600 border border-indigo-200'
+                    : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+                } transition-all duration-200`}
+                title="Ordenar por maior preço"
+              >
+                <ArrowDownIcon className="w-4 h-4" />
+                <span className="text-sm hidden sm:inline">Maior preço</span>
+              </button>
+            </div>
           </div>
 
           <AnimatePresence>
@@ -382,7 +422,7 @@ export default function Products() {
             animate="visible"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {produtosFiltrados.map((product) => {
+            {produtosOrdenados.map((product) => {
               const inativo = product.status === 'inativo';
               return (
                 <motion.div
@@ -466,7 +506,7 @@ export default function Products() {
           </motion.div>
         ) : (
           <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex flex-col gap-4">
-            {produtosFiltrados.map((product) => {
+            {produtosOrdenados.map((product) => {
               const inativo = product.status === 'inativo';
               return (
                 <motion.div
