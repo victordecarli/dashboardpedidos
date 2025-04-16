@@ -640,9 +640,16 @@ export default function Products() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="fixed inset-0 z-40 overflow-y-auto md:inset-auto md:top-20 md:right-6 md:left-auto md:bottom-auto md:w-96"
+              className="fixed inset-x-0 bottom-0 z-[998] overflow-hidden flex items-end md:items-start md:inset-auto md:top-20 md:right-6 md:left-auto md:bottom-auto md:w-96"
             >
-              <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 max-h-[calc(100vh-40px)] md:max-h-[calc(100vh-120px)] flex flex-col">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 -z-10"
+                onClick={() => setCarrinhoAberto(false)}
+              />
+              <div className="relative bg-white rounded-t-xl md:rounded-xl shadow-xl border border-gray-200 max-h-[80vh] md:max-h-[calc(100vh-120px)] flex flex-col w-full md:w-auto overflow-hidden">
                 <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b border-gray-200 flex justify-between items-center rounded-t-xl">
                   <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                     <ShoppingCartIcon className="w-5 h-5 text-indigo-600" />
@@ -735,7 +742,7 @@ export default function Products() {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="md:hidden fixed bottom-6 right-6 z-30"
+            className="fixed bottom-6 right-6 z-40"
           >
             <button
               onClick={() => setCarrinhoAberto(true)}
@@ -745,13 +752,14 @@ export default function Products() {
               <motion.span
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
-                className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center shadow-sm"
+                className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center shadow-sm font-bold"
               >
                 {totalItens}
               </motion.span>
               <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 0.1 }}
                 className="absolute bottom-full right-0 mb-2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               >
                 {currencyFormat(totalCarrinho)}

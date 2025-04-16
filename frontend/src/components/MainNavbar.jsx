@@ -27,6 +27,18 @@ export default function MainNavbar() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Impede a rolagem quando o menu mobile está aberto
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -56,9 +68,41 @@ export default function MainNavbar() {
 
   // Animação para o menu mobile
   const menuVariants = {
-    hidden: { opacity: 0, x: '-100%' },
-    visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 300, damping: 30 } },
-    exit: { opacity: 0, x: '-100%', transition: { duration: 0.2 } },
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.2,
+        ease: 'easeOut',
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        duration: 0.2,
+        ease: 'easeIn',
+      },
+    },
+  };
+
+  const menuContentVariants = {
+    hidden: { x: '-100%' },
+    visible: {
+      x: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+        delay: 0.1,
+      },
+    },
+    exit: {
+      x: '-100%',
+      transition: {
+        duration: 0.2,
+        ease: 'easeIn',
+      },
+    },
   };
 
   return (
@@ -122,7 +166,7 @@ export default function MainNavbar() {
             {/* Botão para abrir menu mobile */}
             <Motion.button
               whileTap={{ scale: 0.9 }}
-              className="md:hidden text-indigo-100 hover:text-white"
+              className="md:hidden text-indigo-100 hover:text-white focus:outline-none"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label={isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
             >
@@ -139,14 +183,20 @@ export default function MainNavbar() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <Motion.div
-            key="mobile-menu"
+            key="mobile-menu-overlay"
             initial="hidden"
             animate="visible"
             exit="exit"
             variants={menuVariants}
-            className="fixed inset-0 z-40 bg-indigo-950/98 backdrop-blur-md md:hidden"
+            className="fixed inset-0 z-[999] bg-indigo-950/95 backdrop-blur-sm md:hidden"
+            onClick={closeMobileMenu}
           >
-            <div className="pt-20 px-4">
+            <Motion.div
+              key="mobile-menu-content"
+              variants={menuContentVariants}
+              className="fixed left-0 top-0 h-full w-[85%] max-w-xs z-[1000] bg-indigo-950 shadow-lg pt-20 px-4 overflow-y-auto flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex flex-col gap-2">
                 {!isAdmin && (
                   <Link to="/dashboard" className={mobileNavItemClass('/dashboard')} onClick={closeMobileMenu}>
@@ -186,7 +236,18 @@ export default function MainNavbar() {
                   Sair
                 </Motion.button>
               </div>
-            </div>
+
+              {/* Área inferior do menu mobile */}
+              <div className="mt-auto pb-8 pt-6 border-t border-indigo-900/50">
+                <div className="flex items-center gap-3 px-4 py-3 text-indigo-200">
+                  <User size={20} className="text-indigo-400" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">Sua Conta</span>
+                    <span className="text-xs text-indigo-400">{isAdmin ? 'Administrador' : 'Cliente'}</span>
+                  </div>
+                </div>
+              </div>
+            </Motion.div>
           </Motion.div>
         )}
       </AnimatePresence>
