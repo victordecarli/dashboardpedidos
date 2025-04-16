@@ -60,7 +60,22 @@ exports.createProduct = async (req, res) => {
         .json({ error: 'Já existe um produto cadastrado com esse nome.' });
     }
 
-    const product = new Product({ name, price, description, status, stock });
+    // Verificar se existe uma imagem
+    let imagePath = '';
+    if (req.file) {
+      // O caminho da imagem será relativo à raiz do servidor
+      imagePath = `/uploads/${req.file.filename}`;
+    }
+
+    const product = new Product({ 
+      name, 
+      price, 
+      description, 
+      status, 
+      stock,
+      image: imagePath
+    });
+    
     await product.save();
     res.status(201).json({ message: 'Produto criado com sucesso', product });
   } catch (err) {
@@ -107,9 +122,18 @@ exports.updateProduct = async (req, res) => {
         .status(400)
         .json({ error: 'O estoque não pode ser negativo.' });
     }
+
+    // Verificar se existe uma imagem
+    const updateData = { name, price, description, status, stock };
+    
+    if (req.file) {
+      // O caminho da imagem será relativo à raiz do servidor
+      updateData.image = `/uploads/${req.file.filename}`;
+    }
+
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      { name, price, description, status, stock },
+      updateData,
       { new: true, runValidators: true },
     );
 

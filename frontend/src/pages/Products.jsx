@@ -26,6 +26,7 @@ import {
   ExclamationCircleIcon,
   ArrowUpIcon,
   ArrowDownIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -434,29 +435,46 @@ export default function Products() {
                       : 'bg-white border-transparent hover:shadow-lg hover:border-indigo-100'
                   }`}
                 >
-                  <div className="p-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <h2 className="text-lg font-semibold text-gray-900 line-clamp-1">{product.name}</h2>
-                      {inativo ? (
+                  <div className="relative">
+                    <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover transition-all duration-500 hover:scale-105"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/400x300?text=Imagem+indisponível';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <PhotoIcon className="w-12 h-12 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
+                    {inativo && (
+                      <div className="absolute top-2 left-2">
                         <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-medium flex items-center gap-1">
                           <span className="h-1.5 w-1.5 bg-red-500 rounded-full"></span>
                           Inativo
                         </span>
-                      ) : (
-                        <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-medium flex items-center gap-1">
-                          <span className="h-1.5 w-1.5 bg-green-500 rounded-full"></span>
-                          Ativo
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xl font-bold text-indigo-600 mb-1">{currencyFormat(product.price)}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    <h2 className="text-lg font-semibold text-gray-900 line-clamp-1 mb-1">{product.name}</h2>
+                    <p className="text-xl font-bold text-indigo-600 mb-2">{currencyFormat(product.price)}</p>
+
                     {product.description && (
                       <p className="text-sm text-gray-500 mb-3 line-clamp-2">{product.description}</p>
                     )}
+
                     <p className="text-sm text-gray-600 flex items-center gap-1.5 mb-4">
                       <ArchiveBoxIcon className="w-4 h-4 text-gray-400" />
                       {product.stock} {product.stock === 1 ? 'unidade' : 'unidades'} em estoque
                     </p>
+
                     <div className="flex flex-wrap gap-2">
                       {!inativo && (
                         <button
@@ -512,14 +530,32 @@ export default function Products() {
                 <motion.div
                   key={product._id}
                   variants={itemVariants}
-                  className={`flex flex-col md:flex-row md:items-center justify-between border rounded-xl p-5 transition-all duration-300 ${
+                  className={`flex flex-col md:flex-row justify-between border rounded-xl overflow-hidden transition-all duration-300 ${
                     inativo
                       ? 'bg-gray-50 border-gray-200'
                       : 'bg-white border-transparent hover:shadow-lg hover:border-indigo-100'
                   }`}
                 >
-                  <div className="flex-1 flex flex-col md:flex-row md:items-center gap-4">
-                    <div className="flex-1">
+                  <div className="flex flex-row w-full">
+                    <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-100 flex-shrink-0">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/128?text=Imagem';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <PhotoIcon className="w-8 h-8 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 flex flex-col p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
                         {inativo ? (
@@ -534,7 +570,9 @@ export default function Products() {
                           </span>
                         )}
                       </div>
+
                       <p className="text-xl font-bold text-indigo-600 mb-1">{currencyFormat(product.price)}</p>
+
                       <div className="flex items-center gap-6 mt-1">
                         <p className="text-sm text-gray-600 flex items-center gap-1.5">
                           <ArchiveBoxIcon className="w-4 h-4 text-gray-400" />
@@ -544,49 +582,50 @@ export default function Products() {
                           <p className="text-sm text-gray-500 line-clamp-1">{product.description}</p>
                         )}
                       </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-4 md:mt-0">
-                    {!inativo && (
-                      <button
-                        className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white px-4 py-2.5 rounded-lg hover:from-indigo-700 hover:to-blue-600 transition-all duration-200 shadow-sm text-sm font-medium flex items-center justify-center gap-1.5"
-                        onClick={() => adicionarAoCarrinho(product)}
-                      >
-                        <ShoppingCartIcon className="w-4 h-4" />
-                        Adicionar
-                      </button>
-                    )}
-                    {isAdmin && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setEditProduct(product);
-                            setEditModalOpen(true);
-                          }}
-                          className="bg-amber-500 text-white px-3 py-2.5 rounded-lg hover:bg-amber-600 transition-all duration-200 text-sm font-medium"
-                        >
-                          Editar
-                        </button>
-                        {inativo ? (
+
+                      <div className="flex items-center gap-2 mt-3">
+                        {!inativo && (
                           <button
-                            onClick={() => ativarProduto(product._id)}
-                            className="bg-green-600 text-white px-3 py-2.5 rounded-lg hover:bg-green-700 transition-all duration-200 text-sm font-medium"
+                            className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-blue-600 transition-all duration-200 shadow-sm text-sm font-medium flex items-center gap-1.5"
+                            onClick={() => adicionarAoCarrinho(product)}
                           >
-                            Ativar
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setSelectedProduct(product);
-                              setModalOpen(true);
-                            }}
-                            className="bg-red-500 text-white px-3 py-2.5 rounded-lg hover:bg-red-600 transition-all duration-200 text-sm font-medium"
-                          >
-                            Desativar
+                            <ShoppingCartIcon className="w-4 h-4" />
+                            Adicionar
                           </button>
                         )}
-                      </>
-                    )}
+                        {isAdmin && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setEditProduct(product);
+                                setEditModalOpen(true);
+                              }}
+                              className="bg-amber-500 text-white px-3 py-2 rounded-lg hover:bg-amber-600 transition-all duration-200 text-sm font-medium"
+                            >
+                              Editar
+                            </button>
+                            {inativo ? (
+                              <button
+                                onClick={() => ativarProduto(product._id)}
+                                className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 text-sm font-medium"
+                              >
+                                Ativar
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setSelectedProduct(product);
+                                  setModalOpen(true);
+                                }}
+                                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 text-sm font-medium"
+                              >
+                                Desativar
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               );

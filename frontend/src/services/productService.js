@@ -19,12 +19,22 @@ export const getProductById = (id) => {
 
 // Criar produto (admin)
 export const createProduct = async (productData) => {
-  return api.post('/products', productData);
+  const config = {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  };
+  return api.post('/products', productData, config);
 };
 
 // Atualizar produto (admin)
 export const updateProduct = async (id, productData) => {
-  return api.patch(`/products/${id}`, productData);
+  // Se productData for um FormData, significa que estamos enviando um arquivo
+  const isFormData = productData instanceof FormData;
+
+  const config = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+
+  return api.patch(`/products/${id}`, productData, config);
 };
 
 // Deletar produto (admin)

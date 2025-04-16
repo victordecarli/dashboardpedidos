@@ -8,6 +8,7 @@ const ProductSchema = new Schema({
         description: { type: String },
         status: { type: String, enum: ['ativo', 'inativo'], default: 'ativo' }, 
         stock: { type: Number, required: true, min: 0 },
+        image: { type: String, default: '' },
     },
     {
         timeseries: true,

@@ -20,6 +20,8 @@ export default function ProductFormAdmin() {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,17 +36,44 @@ export default function ProductFormAdmin() {
     setForm({ ...form, [name]: value });
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Verifica o tipo de arquivo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Formato de imagem não suportado. Use JPEG, PNG, GIF ou WebP.');
+      return;
+    }
+
+    // Verifica o tamanho (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 5MB.');
+      return;
+    }
+
+    setImageFile(file);
+
+    // Gera uma URL temporária para preview
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview(objectUrl);
+
+    // Limpa a URL quando o componente for desmontado
+    return () => URL.revokeObjectURL(objectUrl);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    const payload = {
-      ...form,
-      price: parseFloat(form.price),
-      stock: parseInt(form.stock),
-    };
+    if (!form.name.trim() || !form.price || !form.stock) {
+      setError('Nome, preço e estoque são obrigatórios.');
+      toast.error('Preencha todos os campos obrigatórios.');
+      return;
+    }
 
-    if (payload.price < 0 || payload.stock < 0) {
+    if (parseFloat(form.price) < 0 || parseInt(form.stock) < 0) {
       setError('Preço e estoque não podem ser negativos.');
       toast.error('Preço e estoque não podem ser negativos.');
       return;
@@ -52,8 +81,21 @@ export default function ProductFormAdmin() {
 
     try {
       setIsSubmitting(true);
-      await createProduct(payload);
-      toast.success(' Produto cadastrado com sucesso!');
+
+      // Criar FormData para enviar arquivo
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('price', parseFloat(form.price));
+      formData.append('stock', parseInt(form.stock));
+      formData.append('description', form.description || '');
+      formData.append('status', form.status);
+
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
+      await createProduct(formData);
+      toast.success('Produto cadastrado com sucesso!');
       navigate('/products');
     } catch (err) {
       console.error(err);
@@ -154,6 +196,33 @@ export default function ProductFormAdmin() {
                     </div>
 
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Imagem do Produto</label>
+                      <div className="flex items-center justify-center w-full">
+                        <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            {imagePreview ? (
+                              <img
+                                src={imagePreview}
+                                alt="Preview do produto"
+                                className="w-full h-full object-contain"
+                                style={{ maxHeight: '200px' }}
+                              />
+                            ) : (
+                              <>
+                                <PhotoIcon className="w-10 h-10 mb-3 text-gray-400" />
+                                <p className="mb-2 text-sm text-gray-500">
+                                  <span className="font-semibold">Clique para selecionar</span> ou arraste e solte
+                                </p>
+                                <p className="text-xs text-gray-500">PNG, JPG, GIF ou WebP (máx. 5MB)</p>
+                              </>
+                            )}
+                          </div>
+                          <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                       <select
                         name="status"
@@ -200,8 +269,12 @@ export default function ProductFormAdmin() {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-8">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Pré-visualização</h2>
 
-                <div className="aspect-square bg-gray-100 rounded-xl mb-4 flex items-center justify-center">
-                  <PhotoIcon className="w-12 h-12 text-gray-400" />
+                <div className="aspect-square bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview do produto" className="w-full h-full object-cover" />
+                  ) : (
+                    <PhotoIcon className="w-12 h-12 text-gray-400" />
+                  )}
                 </div>
 
                 <div className="space-y-4">
