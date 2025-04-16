@@ -5,17 +5,20 @@ import { currencyFormat } from '../utils/currencyFormat';
 import { useNavigate } from 'react-router-dom';
 import AdminNavbar from '../components/AdminNavbar';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { getUserRole } from '../utils/auth'; // 👈 IMPORTAÇÃO ADICIONADA
+import { getUserRole } from '../utils/auth';
+import EditProductModal from '../components/EditProductModal';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [carrinho, setCarrinho] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState();
+  const [editProduct, setEditProduct] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
   const navigate = useNavigate();
 
-  const isAdmin = getUserRole() === 'admin'; // 👈 NOVO: checagem via JWT
-
+  const isAdmin = getUserRole() === 'admin';
   useEffect(() => {
     getProducts()
       .then((res) => setProducts(res.data))
@@ -47,6 +50,18 @@ export default function Products() {
 
       return novoCarrinho;
     });
+  };
+
+  const salvarEdicaoProduto = async (dadosAtualizados) => {
+    try {
+      await updateProduct(editProduct._id, dadosAtualizados);
+      setProducts((prev) => prev.map((p) => (p._id === editProduct._id ? { ...p, ...dadosAtualizados } : p)));
+      setEditModalOpen(false);
+      setEditProduct(null);
+    } catch (err) {
+      alert('Erro ao atualizar produto');
+      console.error(err);
+    }
   };
 
   const removerDoCarrinho = (produtoId) => {
@@ -128,15 +143,26 @@ export default function Products() {
                   </button>
 
                   {isAdmin && (
-                    <button
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setModalOpen(true);
-                      }}
-                      className="bg-red-500 text-white px-4 py-1.5 rounded-md hover:bg-red-600 transition text-sm"
-                    >
-                      Excluir
-                    </button>
+                    <>
+                      <button
+                        onClick={() => {
+                          setSelectedProduct(product);
+                          setModalOpen(true);
+                        }}
+                        className="bg-red-500 text-white px-4 py-1.5 rounded-md hover:bg-red-600 transition text-sm"
+                      >
+                        Excluir
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditProduct(product);
+                          setEditModalOpen(true);
+                        }}
+                        className="bg-yellow-500 text-white px-4 py-1.5 rounded-md hover:bg-yellow-600 transition text-sm"
+                      >
+                        Editar
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -186,6 +212,15 @@ export default function Products() {
           message={`Essa ação desativará permanentemente "${selectedProduct.name}".`}
         />
       )}
+      <EditProductModal
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditProduct(null);
+        }}
+        onSave={salvarEdicaoProduto}
+        product={editProduct}
+      />
     </div>
   );
 }
