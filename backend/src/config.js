@@ -36,7 +36,7 @@ const config = {
   isDevelopment: NODE_ENV === 'development',
   
   // Servidor
-  port: parseInt(process.env.PORT || '3030', 10),
+  port: parseInt(process.env.PORT || '3031', 10),
   ssl: sslOptions,
   
   // Banco de dados
@@ -58,7 +58,7 @@ const config = {
   cors: {
     origin: isProduction 
       ? [process.env.FRONTEND_URL || 'https://dashboardpedidos.vercel.app'] 
-      : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+      : ['http://localhost:3031', 'http://localhost:5173', 'http://localhost:5174'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204,
