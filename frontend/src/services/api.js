@@ -1,27 +1,60 @@
 import axios from 'axios';
 import { getAuthToken, clearAuth } from '../utils/authStorage';
 
+// Função para obter variáveis de ambiente, com fallback para as variáveis definidas em runtime
+const getEnvVariable = (key) => {
+  // 1. Tenta obter do import.meta.env (definido em tempo de build pelo Vite)
+  if (import.meta.env[key]) {
+    return import.meta.env[key];
+  }
+
+  // 2. Tenta obter do objeto ENV em runtime (definido em public/config.js)
+  if (window.ENV && window.ENV[key]) {
+    return window.ENV[key];
+  }
+
+  // 3. Fallback para localhost
+  return null;
+};
+
 // Determina a URL base da API dinamicamente
 const getCurrentHost = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+  const configuredUrl = getEnvVariable('VITE_API_URL');
+  if (configuredUrl) {
+    return configuredUrl;
   }
-  const protocol = window.location.protocol;
-  const hostname = window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname;
-  return `${protocol}//${hostname}:3030/api`;
+
+  // Fallback para ambiente de desenvolvimento
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:3030/api';
+  }
+
+  // Para produção - caso não haja configuração
+  // assume que a API está no mesmo domínio que o frontend mas na rota /api
+  return `${window.location.origin}/api`;
 };
 
 const getCurrentServerUrl = () => {
-  if (import.meta.env.VITE_SERVER_URL) {
-    return import.meta.env.VITE_SERVER_URL;
+  const configuredUrl = getEnvVariable('VITE_SERVER_URL');
+  if (configuredUrl) {
+    return configuredUrl;
   }
-  const protocol = window.location.protocol;
-  const hostname = window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname;
-  return `${protocol}//${hostname}:3030`;
+
+  // Fallback para ambiente de desenvolvimento
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:3030';
+  }
+
+  // Para produção - caso não haja configuração
+  // assume que o servidor está no mesmo domínio que o frontend
+  return window.location.origin;
 };
 
 const API_URL = getCurrentHost();
 const SERVER_URL = getCurrentServerUrl();
+
+console.log('API URL:', API_URL);
+console.log('SERVER URL:', SERVER_URL);
 
 export const api = axios.create({
   baseURL: API_URL,

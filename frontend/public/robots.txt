@@ -1,0 +1,11 @@
+# Permitir todos os robôs de busca
+User-agent: *
+Allow: /
+
+# Impedir indexação de páginas administrativas
+User-agent: *
+Disallow: /admin/
+Disallow: /admin/*
+
+# Sitemap (adicione quando disponível)
+# Sitemap: https://seu-site.com/sitemap.xml 
