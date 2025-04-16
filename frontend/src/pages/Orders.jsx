@@ -21,6 +21,60 @@ export default function Orders() {
       });
   }, []);
 
+  // Função para formatar datas de forma segura
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Data não disponível';
+
+    try {
+      // Tenta converter diretamente
+      const date = new Date(dateString);
+
+      // Se a data for válida, retorna formatada
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        });
+      }
+
+      // Se a string tiver o formato ISO ou algo semelhante, tenta extrair partes
+      if (typeof dateString === 'string') {
+        // Tenta extrair data usando regex
+        const dataParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (dataParts) {
+          const [_, ano, mes, dia] = dataParts;
+          return `${dia}/${mes}/${ano}`;
+        }
+
+        // Se tiver timestamp ou data dentro de um objeto
+        if (dateString.includes('$date')) {
+          try {
+            const parsedObj = JSON.parse(dateString);
+            if (parsedObj.$date) {
+              const timestamp = new Date(parsedObj.$date);
+              if (!isNaN(timestamp.getTime())) {
+                return timestamp.toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                });
+              }
+            }
+          } catch {
+            // Ignora erro de parse JSON
+          }
+        }
+      }
+
+      // Se tudo falhar, retorna a string original
+      return dateString;
+    } catch {
+      // Em caso de erro, retorna a string original em vez de mensagem de erro
+      return dateString;
+    }
+  };
+
   return (
     <>
       <AdminNavbar />
@@ -36,7 +90,7 @@ export default function Orders() {
             <div key={order.id} className="border p-4 rounded mb-4 shadow-sm bg-white">
               <div className="flex justify-between items-center mb-2">
                 <h2 className="font-semibold">Pedido #{order.id.slice(-6)}</h2>
-                <span className="text-sm text-gray-600">{new Date(order.data_pedido).toLocaleDateString('pt-BR')}</span>
+                <span className="text-sm text-gray-600">{formatDate(order.data_pedido)}</span>
               </div>
 
               <ul className="text-sm mb-2">

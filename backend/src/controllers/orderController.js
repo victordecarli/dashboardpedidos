@@ -3,6 +3,13 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const moment = require('moment');
 
+// Função auxiliar para formatar datas de forma segura
+function formatDate(date) {
+  if (!date) return 'Data não disponível';
+  const formattedDate = moment(date).format('DD/MM/YYYY HH:mm');
+  return formattedDate !== 'Invalid date' ? formattedDate : 'Data não disponível';
+}
+
 function handleMongooseError(err, res) {
   if (err.name === 'ValidationError') {
     const messages = Object.values(err.errors).map((val) => val.message);
@@ -129,7 +136,7 @@ exports.getAllOrders = async (req, res) => {
       })),
       total: order.total,
       status: order.status,
-      data_pedido: moment(order.createdAt).format('DD/MM/YYYY HH:mm'),
+      data_pedido: formatDate(order.createdAt),
     }));
 
     res.status(200).json({
@@ -170,7 +177,7 @@ exports.getOrderById = async (req, res) => {
       })),
       total: order.total,
       status: order.status,
-      data_pedido: moment(order.createdAt).format('DD/MM/YYYY HH:mm'),
+      data_pedido: formatDate(order.createdAt),
     };
     res.status(200).json({
       success: true,
@@ -192,21 +199,41 @@ exports.getOrdersByUser = async (req, res) => {
         message: 'Usuário não autenticado.',
       });
     }
-    const orders = await Order.find({ user: userId }).populate(
-      'products.product',
-      'name price',
-    );
+    
+    // Adicionando tratamento de erros para a consulta
+    let orders;
+    try {
+      orders = await Order.find({ user: userId })
+        .populate('products.product', 'name price')
+        .lean(); // usando lean() para melhor performance
+    } catch (dbError) {
+      console.error('Erro na consulta de pedidos:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao consultar pedidos no banco de dados',
+      });
+    }
+
+    // Verificar se orders é um array válido
+    if (!orders || !Array.isArray(orders)) {
+      return res.status(200).json({
+        success: true,
+        message: 'Nenhum pedido encontrado',
+        count: 0,
+        data: [],
+      });
+    }
 
     const formattedOrders = orders.map((order) => ({
       id: order._id,
       products: order.products.map((item) => ({
-        product_name: item.product.name,
-        price: item.product.price,
+        product_name: item.product?.name || 'Produto removido',
+        price: item.product?.price || 0,
         quantity: item.quantity,
       })),
       total: order.total,
       status: order.status,
-      data_pedido: moment(order.createdAt).format('DD/MM/YYYY HH:mm'),
+      data_pedido: formatDate(order.createdAt),
     }));
 
     res.status(200).json({
@@ -216,6 +243,7 @@ exports.getOrdersByUser = async (req, res) => {
       data: formattedOrders,
     });
   } catch (err) {
+    console.error('Erro geral em getOrdersByUser:', err);
     handleMongooseError(err, res);
   }
 };
@@ -285,7 +313,7 @@ exports.updateOrder = async (req, res) => {
       })),
       total: order.total,
       status: order.status,
-      data_pedido: moment(order.createdAt).format('DD/MM/YYYY HH:mm'),
+      data_pedido: formatDate(order.createdAt),
     };
 
     res.status(200).json({

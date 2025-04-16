@@ -48,13 +48,77 @@ export default function AdminOrders() {
     navigate('/products'); // Redireciona após o modal ser fechado
   };
 
+  // Função para formatar datas de forma segura
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Data não disponível';
+
+    try {
+      // Tenta converter diretamente
+      const date = new Date(dateString);
+
+      // Se a data for válida, retorna formatada
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+
+      // Se a string tiver o formato ISO ou algo semelhante, tenta extrair partes
+      if (typeof dateString === 'string') {
+        // Tenta extrair data usando regex
+        const dataParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (dataParts) {
+          const [_, ano, mes, dia] = dataParts;
+
+          // Tenta extrair hora se possível
+          const horaParts = dateString.match(/T(\d{2}):(\d{2})/);
+          if (horaParts) {
+            const [__, hora, minuto] = horaParts;
+            return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+          }
+
+          return `${dia}/${mes}/${ano}`;
+        }
+
+        // Se tiver timestamp ou data dentro de um objeto
+        if (dateString.includes('$date')) {
+          try {
+            const parsedObj = JSON.parse(dateString);
+            if (parsedObj.$date) {
+              const timestamp = new Date(parsedObj.$date);
+              if (!isNaN(timestamp.getTime())) {
+                return timestamp.toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+              }
+            }
+          } catch {
+            // Ignora erro de parse JSON
+          }
+        }
+      }
+
+      // Se tudo falhar, retorna a string original
+      return dateString;
+    } catch {
+      // Em caso de erro, retorna a string original em vez de mensagem de erro
+      return dateString;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <AdminNavbar />
       <div className="p-6 max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">
-          Todos os Pedidos
-        </h1>
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Todos os Pedidos</h1>
 
         {loading ? (
           <p className="text-center text-gray-500">Carregando...</p>
@@ -62,19 +126,13 @@ export default function AdminOrders() {
           <p className="text-center text-gray-500">Nenhum pedido encontrado.</p>
         ) : (
           orders.map((order) => (
-            <div
-              key={order.id}
-              className="bg-white border border-gray-200 p-5 rounded-lg shadow-sm mb-6"
-            >
+            <div key={order.id} className="bg-white border border-gray-200 p-5 rounded-lg shadow-sm mb-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <p className="text-sm font-medium text-gray-700">
-                    Cliente: {order.user.name}{' '}
-                    <span className="text-xs text-gray-500">
-                      ({order.user.email})
-                    </span>
+                    Cliente: {order.user.name} <span className="text-xs text-gray-500">({order.user.email})</span>
                   </p>
-                  <p className="text-xs text-gray-500">{order.data_pedido}</p>
+                  <p className="text-xs text-gray-500">{formatDate(order.data_pedido)}</p>
                 </div>
                 <select
                   value={order.status}
@@ -92,20 +150,14 @@ export default function AdminOrders() {
                     <span className="text-gray-700">
                       {item.product_name} x{item.quantity}
                     </span>
-                    <span className="text-gray-600">
-                      {currencyFormat(item.price * item.quantity)}
-                    </span>
+                    <span className="text-gray-600">{currencyFormat(item.price * item.quantity)}</span>
                   </li>
                 ))}
               </ul>
 
               <div className="flex justify-between items-center border-t pt-3">
-                <span className="text-sm font-medium text-gray-600">
-                  Total:
-                </span>
-                <span className="text-lg font-bold text-green-700">
-                  {currencyFormat(order.total)}
-                </span>
+                <span className="text-sm font-medium text-gray-600">Total:</span>
+                <span className="text-lg font-bold text-green-700">{currencyFormat(order.total)}</span>
               </div>
             </div>
           ))
@@ -114,12 +166,8 @@ export default function AdminOrders() {
         {showModal && (
           <Modal title="Acesso Negado" onClose={handleCloseModal}>
             <div className="text-center p-4">
-              <p className="text-red-600 font-semibold text-lg mb-2">
-                ⛔ Acesso Restrito
-              </p>
-              <p className="text-gray-600">
-                Esta página é exclusiva para administradores.
-              </p>
+              <p className="text-red-600 font-semibold text-lg mb-2">⛔ Acesso Restrito</p>
+              <p className="text-gray-600">Esta página é exclusiva para administradores.</p>
             </div>
           </Modal>
         )}
