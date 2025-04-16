@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { logout, getUserRole } from '../utils/auth';
-import { Home, ShoppingBag, ClipboardList, PlusCircle, LogOut, Menu, X } from 'lucide-react';
+import { Home, ShoppingBag, ClipboardList, PlusCircle, LogOut, Menu, X, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function MainNavbar() {
@@ -64,6 +64,12 @@ export default function MainNavbar() {
 
             {/* Links para desktop */}
             <div className="hidden md:flex items-center gap-3">
+              {!isAdmin && (
+                <Link to="/dashboard" className={navItemClass('/dashboard')}>
+                  <User size={16} />
+                  Dashboard
+                </Link>
+              )}
               <Link to="/products" className={navItemClass('/products')}>
                 <Home size={16} />
                 Produtos
@@ -112,6 +118,12 @@ export default function MainNavbar() {
         <div className="fixed inset-0 z-40 bg-gray-900/95 backdrop-blur-sm">
           <div className="pt-20 px-4">
             <div className="flex flex-col gap-2">
+              {!isAdmin && (
+                <Link to="/dashboard" className={mobileNavItemClass('/dashboard')} onClick={closeMobileMenu}>
+                  <User size={20} />
+                  Dashboard
+                </Link>
+              )}
               <Link to="/products" className={mobileNavItemClass('/products')} onClick={closeMobileMenu}>
                 <Home size={20} />
                 Produtos

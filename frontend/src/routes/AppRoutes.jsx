@@ -9,11 +9,22 @@ import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
-import { isAuthenticated } from '../utils/auth';
+import { isAuthenticated, getUserRole } from '../utils/auth';
+import ClientDashboard from '../pages/ClientDashboard';
 
 // Componente para redirecionar a rota inicial baseado no estado de autenticação
 const HomeRedirect = () => {
-  return isAuthenticated() ? <Navigate to="/products" /> : <Navigate to="/login" />;
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" />;
+  }
+
+  // Redirecionar usuários comuns para o dashboard e admins para a lista de produtos
+  const userRole = getUserRole()?.toLowerCase();
+  if (userRole === 'admin') {
+    return <Navigate to="/admin-orders" />;
+  }
+
+  return <Navigate to="/dashboard" />;
 };
 
 export default function AppRoutes() {
@@ -49,6 +60,16 @@ export default function AppRoutes() {
         {/* A rota de redefinição de senha não usa PublicRoute porque precisamos
             permitir acesso mesmo se o usuário estiver logado */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        {/* Rota do Dashboard do Cliente */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <ClientDashboard />
+            </PrivateRoute>
+          }
+        />
 
         {/* Rotas protegidas para usuários autenticados */}
         <Route
