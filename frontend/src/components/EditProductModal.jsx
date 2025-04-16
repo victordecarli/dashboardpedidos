@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild, DialogBackdrop } from '@headlessui/react';
+import toast from 'react-hot-toast';
 
 export default function EditProductModal({ open, onClose, onSave, product }) {
   const [form, setForm] = useState({
@@ -9,6 +10,7 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
     description: '',
     status: 'ativo',
   });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -27,95 +29,167 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave({
-      ...form,
-      price: parseFloat(form.price),
-      stock: parseInt(form.stock),
-    });
+    if (!form.name.trim() || !form.price || !form.stock) {
+      toast.error('Preencha todos os campos obrigatórios!');
+      return;
+    }
+    setSaving(true);
+    try {
+      await onSave({
+        ...form,
+        price: parseFloat(form.price),
+        stock: parseInt(form.stock),
+      });
+      toast.success('Produto atualizado!');
+    } catch {
+      toast.error('Erro ao salvar produto');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  return (
-    <AnimatePresence>
-      {open && product && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white w-full max-w-md rounded-xl shadow-xl p-6"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-          >
-            <h2 className="text-lg font-bold text-gray-800 mb-4 text-center">Editar Produto</h2>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="Nome"
-                required
-                className="w-full border rounded-lg px-4 py-2 text-sm"
-              />
-              <input
-                name="price"
-                value={form.price}
-                onChange={handleChange}
-                placeholder="Preço"
-                type="number"
-                step="0.01"
-                required
-                className="w-full border rounded-lg px-4 py-2 text-sm"
-              />
-              <input
-                name="stock"
-                value={form.stock}
-                onChange={handleChange}
-                placeholder="Estoque"
-                type="number"
-                required
-                className="w-full border rounded-lg px-4 py-2 text-sm"
-              />
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="Descrição"
-                className="w-full border rounded-lg px-4 py-2 text-sm"
-              />
-              <select
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-2 text-sm"
-              >
-                <option value="ativo">Ativo</option>
-                <option value="inativo">Inativo</option>
-              </select>
+  if (!product) return null;
 
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm"
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
-                  Salvar
-                </button>
+  return (
+    <Transition show={open}>
+      <Dialog onClose={onClose} className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="min-h-screen px-4 text-center flex items-center justify-center">
+          <TransitionChild
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <DialogBackdrop className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          </TransitionChild>
+
+          <span className="inline-block h-screen align-middle" aria-hidden="true">
+            &#8203;
+          </span>
+
+          <TransitionChild
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
+          >
+            <DialogPanel className="inline-block w-full max-w-3xl p-0 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl">
+              <div className="flex flex-col md:flex-row">
+                {/* Formulário */}
+                <div className="flex-1 p-8">
+                  <DialogTitle as="h2" className="text-2xl font-bold text-gray-800 mb-6 text-center md:text-left">
+                    Editar Produto
+                  </DialogTitle>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                      <input
+                        name="name"
+                        value={form.name}
+                        onChange={handleChange}
+                        placeholder="Nome"
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Preço</label>
+                        <input
+                          name="price"
+                          value={form.price}
+                          onChange={handleChange}
+                          placeholder="Preço"
+                          type="number"
+                          step="0.01"
+                          required
+                          className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Estoque</label>
+                        <input
+                          name="stock"
+                          value={form.stock}
+                          onChange={handleChange}
+                          placeholder="Estoque"
+                          type="number"
+                          required
+                          className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                      <textarea
+                        name="description"
+                        value={form.description}
+                        onChange={handleChange}
+                        placeholder="Descrição"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        name="status"
+                        value={form.status}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="ativo">Ativo</option>
+                        <option value="inativo">Inativo</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4">
+                      <button
+                        type="button"
+                        onClick={onClose}
+                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm"
+                        disabled={saving}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className={`bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-semibold ${
+                          saving ? 'opacity-70 cursor-not-allowed' : ''
+                        }`}
+                        disabled={saving}
+                      >
+                        {saving ? 'Salvando...' : 'Salvar'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+                {/* Preview do produto */}
+                <div className="hidden md:block w-80 bg-gray-50 border-l border-gray-200 p-8">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Visualização em tempo real</h3>
+                  <div className="mb-2 text-xl font-bold text-gray-900">{form.name || 'Nome do produto'}</div>
+                  <div className="mb-2 text-lg text-blue-700">
+                    {form.price ? `R$ ${Number(form.price).toFixed(2)}` : 'Preço'}
+                  </div>
+                  <div className="mb-2 text-gray-600">Estoque: {form.stock || 0} unidades</div>
+                  <div className="mb-2 text-gray-500 min-h-[48px]">{form.description || 'Descrição do produto...'}</div>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                      form.status === 'ativo' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {form.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                  </span>
+                </div>
               </div>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            </DialogPanel>
+          </TransitionChild>
+        </div>
+      </Dialog>
+    </Transition>
   );
 }
