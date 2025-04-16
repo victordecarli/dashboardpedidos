@@ -37,7 +37,7 @@ const config = {
   // CORS
   cors: {
     origin: isProduction 
-      ? [process.env.FRONTEND_URL || 'https://sua-aplicacao.com'] 
+      ? [process.env.FRONTEND_URL || 'https://dashboardpedidos.vercel.app'] 
       : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,

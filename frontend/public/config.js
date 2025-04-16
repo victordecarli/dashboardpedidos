@@ -11,5 +11,5 @@ window.ENV = {
   VITE_API_URL: 'https://api.seu-dominio.com/api',
 
   // URL raiz do servidor backend (para imagens, etc)
-  VITE_SERVER_URL: 'https://api.seu-dominio.com',
+  VITE_SERVER_URL: 'https://dashboardpedidos.vercel.app',
 };
