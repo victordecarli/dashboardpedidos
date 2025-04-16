@@ -66,18 +66,25 @@ exports.createOrder = async (req, res) => {
       if (!product) {
         return res
           .status(422)
-          .json({ error: `Produto não encontrado: ${item.product}` });
+          .json({ 
+            success: false,
+            message: `Produto não encontrado: ${item.product}` 
+          });
       }
 
       if (product.status !== 'ativo') {
         return res
           .status(422)
-          .json({ error: `Produto "${product.name}" está inativo.` });
+          .json({ 
+            success: false,
+            message: `Produto "${product.name}" está inativo.` 
+          });
       }
 
       if (product.stock < item.quantity) {
         return res.status(422).json({
-          error: `Estoque insuficiente para "${product.name}". Estoque atual: ${product.stock}`,
+          success: false,
+          message: `Estoque insuficiente para "${product.name}". Estoque atual: ${product.stock}`,
         });
       }
     }
@@ -86,21 +93,25 @@ exports.createOrder = async (req, res) => {
     await order.save();
 
     for (const item of products) {
-      const product = await Product.findById(item.product);
+      try {
+        const product = await Product.findById(item.product);
+        if (!product) continue; // segurança
 
-      if (!product) continue; // segurança
+        const novoEstoque = product.stock - item.quantity;
+        const novoStatus = novoEstoque <= 0 ? 'inativo' : product.status;
 
-      const novoEstoque = product.stock - item.quantity;
-      const novoStatus = novoEstoque <= 0 ? 'inativo' : product.status;
-
-      await Product.findByIdAndUpdate(
-        item.product,
-        {
-          stock: novoEstoque,
-          status: novoStatus,
-        },
-        { new: true },
-      );
+        await Product.findByIdAndUpdate(
+          item.product,
+          {
+            stock: novoEstoque,
+            status: novoStatus,
+          },
+          { new: true },
+        );
+      } catch (updateError) {
+        console.error('Erro ao atualizar estoque do produto:', updateError);
+        // Continuamos o processo mesmo com erro no update de estoque
+      }
     }
 
     res.status(201).json({
@@ -111,6 +122,7 @@ exports.createOrder = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error('Erro ao criar pedido:', err);
     handleMongooseError(err, res);
   }
 };
@@ -120,24 +132,45 @@ exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({})
       .populate('user', 'name email')
-      .populate('products.product', 'name price');
+      .populate('products.product', 'name price')
+      .lean();
 
-    const formattedOrders = orders.map((order) => ({
-      id: order._id,
-      user: {
-        id_user: order.user._id,
-        name: order.user.name,
-        email: order.user.email,
-      },
-      products: order.products.map((item) => ({
-        product_name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-      })),
-      total: order.total,
-      status: order.status,
-      data_pedido: formatDate(order.createdAt),
-    }));
+    if (!orders) {
+      return res.status(200).json({
+        success: true,
+        message: 'Nenhum pedido encontrado',
+        count: 0,
+        data: [],
+      });
+    }
+
+    const formattedOrders = orders.map((order) => {
+      // Verificar se o usuário existe
+      if (!order.user) {
+        order.user = { 
+          _id: 'Usuário removido', 
+          name: 'Usuário removido', 
+          email: 'N/A' 
+        };
+      }
+
+      return {
+        id: order._id,
+        user: {
+          id_user: order.user._id,
+          name: order.user.name || 'Nome indisponível',
+          email: order.user.email || 'Email indisponível',
+        },
+        products: order.products.map((item) => ({
+          product_name: item.product?.name || 'Produto removido',
+          price: item.product?.price || 0,
+          quantity: item.quantity || 0,
+        })),
+        total: order.total || 0,
+        status: order.status || 'processando',
+        data_pedido: formatDate(order.createdAt),
+      };
+    });
 
     res.status(200).json({
       success: true,
@@ -146,6 +179,7 @@ exports.getAllOrders = async (req, res) => {
       data: formattedOrders,
     });
   } catch (err) {
+    console.error('Erro ao buscar todos os pedidos:', err);
     handleMongooseError(err, res);
   }
 };
@@ -153,9 +187,17 @@ exports.getAllOrders = async (req, res) => {
 // 📌 Buscar pedidos por ID (READ)
 exports.getOrderById = async (req, res) => {
   try {
+    if (!req.params.id || !req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de pedido inválido',
+      });
+    }
+
     const order = await Order.findById(req.params.id)
       .populate('user', 'name email')
-      .populate('products.product', 'name price');
+      .populate('products.product', 'name price')
+      .lean();
 
     if (!order) {
       return res.status(404).json({
@@ -163,28 +205,40 @@ exports.getOrderById = async (req, res) => {
         message: 'Pedido não encontrado.',
       });
     }
+
+    // Verificar se o usuário existe
+    if (!order.user) {
+      order.user = { 
+        _id: 'Usuário removido', 
+        name: 'Usuário removido', 
+        email: 'N/A' 
+      };
+    }
+    
     const formattedOrder = {
       id: order._id,
       user: {
         id_user: order.user._id,
-        name: order.user.name,
-        email: order.user.email,
+        name: order.user.name || 'Nome indisponível',
+        email: order.user.email || 'Email indisponível',
       },
       products: order.products.map((item) => ({
-        product_name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
+        product_name: item.product?.name || 'Produto removido',
+        price: item.product?.price || 0,
+        quantity: item.quantity || 0,
       })),
-      total: order.total,
-      status: order.status,
+      total: order.total || 0,
+      status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
     };
+    
     res.status(200).json({
       success: true,
       message: 'Pedido obtido com sucesso',
       data: formattedOrder,
     });
   } catch (err) {
+    console.error('Erro ao buscar pedido por ID:', err);
     handleMongooseError(err, res);
   }
 };
@@ -205,7 +259,8 @@ exports.getOrdersByUser = async (req, res) => {
     try {
       orders = await Order.find({ user: userId })
         .populate('products.product', 'name price')
-        .lean(); // usando lean() para melhor performance
+        .lean() // usando lean() para melhor performance
+        .exec();
     } catch (dbError) {
       console.error('Erro na consulta de pedidos:', dbError);
       return res.status(500).json({
@@ -229,10 +284,10 @@ exports.getOrdersByUser = async (req, res) => {
       products: order.products.map((item) => ({
         product_name: item.product?.name || 'Produto removido',
         price: item.product?.price || 0,
-        quantity: item.quantity,
+        quantity: item.quantity || 0,
       })),
-      total: order.total,
-      status: order.status,
+      total: order.total || 0,
+      status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
     }));
 
@@ -251,6 +306,13 @@ exports.getOrdersByUser = async (req, res) => {
 // 📌 Alterar status do pedido
 exports.updateOrder = async (req, res) => {
   try {
+    if (!req.params.id || !req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de pedido inválido',
+      });
+    }
+
     const { products, total, status } = req.body;
     const updateData = {};
 
@@ -285,34 +347,53 @@ exports.updateOrder = async (req, res) => {
       updateData.status = status;
     }
 
-    const order = await Order.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-      runValidators: true,
-    })
-      .populate('user', 'name email')
-      .populate('products.product', 'name price');
-
-    if (!order) {
+    // Verificar se o pedido existe antes de tentar atualizar
+    const orderExists = await Order.findById(req.params.id);
+    if (!orderExists) {
       return res.status(404).json({
         success: false,
         message: 'Pedido não encontrado.',
       });
     }
 
+    const order = await Order.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    })
+      .populate('user', 'name email')
+      .populate('products.product', 'name price')
+      .lean();
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pedido não encontrado após atualização.',
+      });
+    }
+
+    // Verificar se o usuário existe
+    if (!order.user) {
+      order.user = { 
+        _id: 'Usuário removido', 
+        name: 'Usuário removido', 
+        email: 'N/A' 
+      };
+    }
+
     const formattedOrder = {
       id: order._id,
       user: {
         id_user: order.user._id,
-        name: order.user.name,
-        email: order.user.email,
+        name: order.user.name || 'Nome indisponível',
+        email: order.user.email || 'Email indisponível',
       },
       products: order.products.map((item) => ({
         product_name: item.product?.name || 'Produto removido',
         price: item.product?.price || 0,
-        quantity: item.quantity,
+        quantity: item.quantity || 0,
       })),
-      total: order.total,
-      status: order.status,
+      total: order.total || 0,
+      status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
     };
 
@@ -322,6 +403,7 @@ exports.updateOrder = async (req, res) => {
       data: formattedOrder,
     });
   } catch (err) {
+    console.error('Erro ao atualizar pedido:', err);
     handleMongooseError(err, res);
   }
 };
@@ -329,6 +411,13 @@ exports.updateOrder = async (req, res) => {
 // 📌 Excluir um produto (DELETE)
 exports.deleteOrder = async (req, res) => {
   try {
+    if (!req.params.id || !req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de pedido inválido',
+      });
+    }
+    
     const order = await Order.findByIdAndDelete(req.params.id);
     if (!order) {
       return res.status(404).json({
@@ -341,6 +430,7 @@ exports.deleteOrder = async (req, res) => {
       message: 'Pedido deletado com sucesso',
     });
   } catch (err) {
+    console.error('Erro ao excluir pedido:', err);
     handleMongooseError(err, res);
   }
 };
