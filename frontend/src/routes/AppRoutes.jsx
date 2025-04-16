@@ -6,16 +6,50 @@ import AdminOrders from '../pages/AdminOrders';
 import ProductFormAdmin from '../pages/ProductFormAdmin';
 import Register from '../pages/Register';
 import PrivateRoute from './PrivateRoute';
+import PublicRoute from './PublicRoute';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
+import { isAuthenticated } from '../utils/auth';
+
+// Componente para redirecionar a rota inicial baseado no estado de autenticação
+const HomeRedirect = () => {
+  return isAuthenticated() ? <Navigate to="/products" /> : <Navigate to="/login" />;
+};
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        {/* Rotas públicas - redireciona para /products se já estiver logado */}
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          }
+        />
+
+        {/* A rota de redefinição de senha não usa PublicRoute porque precisamos
+            permitir acesso mesmo se o usuário estiver logado */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
         {/* Rotas protegidas para usuários autenticados */}
         <Route
           path="/products"
@@ -52,8 +86,11 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Qualquer outra rota leva para login */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* Página inicial redireciona com base na autenticação */}
+        <Route path="/" element={<HomeRedirect />} />
+
+        {/* Qualquer outra rota não encontrada */}
+        <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </BrowserRouter>
   );

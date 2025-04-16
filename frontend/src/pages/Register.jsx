@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../services/authService';
 import { BackgroundLoginSVG } from '../assets/svgs/backgroundLoginSVG';
 import { IoEye, IoEyeOff } from 'react-icons/io5';
+import { isAuthenticated } from '../utils/auth';
 
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
@@ -12,6 +13,13 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+
+  // Verifique se o usuário já está autenticado ao carregar a página
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/products');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
