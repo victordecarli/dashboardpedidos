@@ -48,6 +48,8 @@ export default function Products() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [priceSort, setPriceSort] = useState(null);
+  const [pedidoFinalizando, setPedidoFinalizando] = useState(false);
+  const [pedidoSucesso, setPedidoSucesso] = useState(false);
 
   const navigate = useNavigate();
   const isAdmin = getUserRole()?.toLowerCase() === 'admin';
@@ -138,6 +140,8 @@ export default function Products() {
   };
 
   const finalizarPedido = async () => {
+    setPedidoFinalizando(true);
+
     const payload = {
       products: carrinho.map((item) => ({ product: item._id, quantity: item.quantity })),
       total: carrinho.reduce((acc, item) => acc + item.price * item.quantity, 0),
@@ -145,13 +149,66 @@ export default function Products() {
 
     try {
       await createOrder(payload);
-      toast.success('✅ Pedido enviado com sucesso!');
-      setCarrinho([]);
-      setCarrinhoAberto(false);
-      navigate('/orders');
+
+      // Mostrar animação de sucesso
+      setPedidoSucesso(true);
+
+      // Toast mais detalhado
+      toast.success(
+        () => (
+          <div className="flex items-start">
+            <CheckCircleIcon className="w-6 h-6 text-green-500 mr-2 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Pedido realizado com sucesso!</p>
+              <p className="text-sm mt-1">
+                {totalItens} {totalItens === 1 ? 'item' : 'itens'} - {currencyFormat(totalCarrinho)}
+              </p>
+            </div>
+          </div>
+        ),
+        {
+          duration: 5000,
+          style: {
+            borderRadius: '10px',
+            background: '#fff',
+            color: '#333',
+            border: '1px solid #E2E8F0',
+            padding: '16px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+          },
+        },
+      );
+
+      // Aguardar a animação ser exibida antes de redirecionar
+      setTimeout(() => {
+        setCarrinho([]);
+        setCarrinhoAberto(false);
+        setPedidoSucesso(false);
+        setPedidoFinalizando(false);
+        navigate('/orders');
+      }, 2000);
     } catch (err) {
       console.error('Erro ao enviar pedido:', err);
-      toast.error('❌ Erro ao enviar pedido. Tente novamente.');
+      toast.error(
+        <div className="flex items-start">
+          <ExclamationCircleIcon className="w-6 h-6 text-red-500 mr-2 flex-shrink-0" />
+          <div>
+            <p className="font-medium">Erro ao finalizar o pedido</p>
+            <p className="text-sm mt-1">Por favor, tente novamente</p>
+          </div>
+        </div>,
+        {
+          duration: 4000,
+          style: {
+            borderRadius: '10px',
+            background: '#fff',
+            color: '#333',
+            border: '1px solid #E2E8F0',
+            padding: '16px',
+          },
+        },
+      );
+      setPedidoFinalizando(false);
     }
   };
 
@@ -754,13 +811,69 @@ export default function Products() {
                     </span>
                     <span className="text-xl font-bold text-gray-900">{currencyFormat(totalCarrinho)}</span>
                   </div>
-                  <button
-                    onClick={finalizarPedido}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg hover:from-green-600 hover:to-emerald-700 shadow-sm font-semibold text-base flex items-center justify-center gap-2 transition-all duration-200"
-                  >
-                    <CheckCircleIcon className="w-5 h-5" />
-                    Finalizar Pedido
-                  </button>
+
+                  {pedidoSucesso ? (
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="w-full py-3 flex flex-col items-center justify-center gap-2"
+                    >
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 260,
+                          damping: 20,
+                          duration: 0.8,
+                        }}
+                        className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-2"
+                      >
+                        <CheckCircleIcon className="w-10 h-10 text-green-600" />
+                      </motion.div>
+                      <p className="text-lg font-medium text-green-700">Pedido realizado com sucesso!</p>
+                      <p className="text-sm text-gray-500">Redirecionando para seus pedidos...</p>
+                    </motion.div>
+                  ) : (
+                    <button
+                      onClick={finalizarPedido}
+                      disabled={pedidoFinalizando}
+                      className={`w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg hover:from-green-600 hover:to-emerald-700 shadow-sm font-semibold text-base flex items-center justify-center gap-2 transition-all duration-200 ${
+                        pedidoFinalizando ? 'opacity-70 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {pedidoFinalizando ? (
+                        <>
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Processando...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircleIcon className="w-5 h-5" />
+                          Finalizar Pedido
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>
