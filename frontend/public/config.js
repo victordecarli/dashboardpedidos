@@ -8,8 +8,8 @@
 
 window.ENV = {
   // URL da API backend
-  VITE_API_URL: 'https://api.seu-dominio.com/api',
+  VITE_API_URL: 'http://backend:3030/api',
 
   // URL raiz do servidor backend (para imagens, etc)
-  VITE_SERVER_URL: 'https://dashboardpedidos.vercel.app',
+  VITE_SERVER_URL: 'http://backend:3030',
 };
