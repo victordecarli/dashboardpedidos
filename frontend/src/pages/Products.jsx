@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getProducts, updateProduct } from '../services/productService';
+import { getProducts as fetchAllProducts, updateProduct } from '../services/productService';
 import { createOrder } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
 import { useNavigate } from 'react-router-dom';
@@ -17,13 +17,18 @@ export default function Products() {
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   const navigate = useNavigate();
+  const isAdmin = getUserRole()?.toLowerCase() === 'admin';
 
-  const isAdmin = getUserRole() === 'admin';
-  useEffect(() => {
-    getProducts()
+  const fetchProducts = () => {
+    const url = isAdmin ? '/products?all=true' : '/products';
+    fetchAllProducts(url)
       .then((res) => setProducts(res.data))
       .catch(() => alert('Erro ao carregar produtos'));
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [isAdmin]);
 
   const adicionarAoCarrinho = (produto) => {
     setCarrinho((prev) => {
@@ -44,7 +49,7 @@ export default function Products() {
 
       if (novoEstoqueRestante === 0) {
         updateProduct(produto._id, { active: false }).then(() => {
-          setProducts((prevProducts) => prevProducts.map((p) => (p._id === produto._id ? { ...p, active: false } : p)));
+          fetchProducts();
         });
       }
 
@@ -55,7 +60,7 @@ export default function Products() {
   const salvarEdicaoProduto = async (dadosAtualizados) => {
     try {
       await updateProduct(editProduct._id, dadosAtualizados);
-      setProducts((prev) => prev.map((p) => (p._id === editProduct._id ? { ...p, ...dadosAtualizados } : p)));
+      fetchProducts();
       setEditModalOpen(false);
       setEditProduct(null);
     } catch (err) {
@@ -78,7 +83,7 @@ export default function Products() {
 
       if (novoEstoque >= 1 && produtoNoCarrinho.status === 'inativo') {
         updateProduct(produtoId, { status: 'ativo' }).then(() => {
-          setProducts((prevProducts) => prevProducts.map((p) => (p._id === produtoId ? { ...p, status: 'ativo' } : p)));
+          fetchProducts();
         });
       }
 
@@ -88,10 +93,7 @@ export default function Products() {
 
   const finalizarPedido = async () => {
     const payload = {
-      products: carrinho.map((item) => ({
-        product: item._id,
-        quantity: item.quantity,
-      })),
+      products: carrinho.map((item) => ({ product: item._id, quantity: item.quantity })),
       total: carrinho.reduce((acc, item) => acc + item.price * item.quantity, 0),
     };
 
@@ -109,10 +111,20 @@ export default function Products() {
   const desativarProduto = async (produtoId) => {
     try {
       await updateProduct(produtoId, { status: 'inativo' });
-      setProducts((prevProducts) => prevProducts.map((p) => (p._id === produtoId ? { ...p, status: 'inativo' } : p)));
+      fetchProducts();
     } catch (err) {
       console.error('Erro ao desativar produto:', err);
       alert('❌ Não foi possível desativar o produto.');
+    }
+  };
+
+  const ativarProduto = async (produtoId) => {
+    try {
+      await updateProduct(produtoId, { status: 'ativo' });
+      fetchProducts();
+    } catch (err) {
+      console.error('Erro ao ativar produto:', err);
+      alert('❌ Não foi possível ativar o produto.');
     }
   };
 
@@ -124,49 +136,69 @@ export default function Products() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products
-            .filter((product) => product.status === 'ativo')
-            .map((product) => (
-              <div
-                key={product._id}
-                className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 hover:shadow-md transition"
-              >
-                <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
-                <p className="text-sm text-gray-600 mt-1">{currencyFormat(product.price)}</p>
-                <p className="text-sm text-gray-500 mb-4">Estoque: {product.stock} Unidades</p>
+            .filter((product) => isAdmin || product.status === 'ativo')
+            .map((product) => {
+              const inativo = product.status === 'inativo';
 
-                <div className="flex gap-2">
-                  <button
-                    className="bg-[var(--color-primary)] text-white px-4 py-1.5 rounded-md hover:opacity-90 transition text-sm"
-                    onClick={() => adicionarAoCarrinho(product)}
-                  >
-                    Adicionar
-                  </button>
+              return (
+                <div
+                  key={product._id}
+                  className={`border rounded-xl p-6 transition shadow-sm hover:shadow-md ${
+                    inativo ? 'bg-gray-100 opacity-60' : 'bg-white'
+                  }`}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
+                    {inativo && <span className="text-xs bg-red-200 text-red-700 px-2 py-0.5 rounded">Inativo</span>}
+                  </div>
 
-                  {isAdmin && (
-                    <>
+                  <p className="text-sm text-gray-600">{currencyFormat(product.price)}</p>
+                  <p className="text-sm text-gray-500 mb-4">Estoque: {product.stock} Unidades</p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {!inativo && (
                       <button
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          setModalOpen(true);
-                        }}
-                        className="bg-red-500 text-white px-4 py-1.5 rounded-md hover:bg-red-600 transition text-sm"
+                        className="bg-[var(--color-primary)] text-white px-4 py-1.5 rounded-md hover:opacity-90 transition text-sm"
+                        onClick={() => adicionarAoCarrinho(product)}
                       >
-                        Excluir
+                        Adicionar
                       </button>
-                      <button
-                        onClick={() => {
-                          setEditProduct(product);
-                          setEditModalOpen(true);
-                        }}
-                        className="bg-yellow-500 text-white px-4 py-1.5 rounded-md hover:bg-yellow-600 transition text-sm"
-                      >
-                        Editar
-                      </button>
-                    </>
-                  )}
+                    )}
+
+                    {isAdmin && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setModalOpen(true);
+                          }}
+                          className="bg-red-500 text-white px-4 py-1.5 rounded-md hover:bg-red-600 transition text-sm"
+                        >
+                          Excluir
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditProduct(product);
+                            setEditModalOpen(true);
+                          }}
+                          className="bg-yellow-500 text-white px-4 py-1.5 rounded-md hover:bg-yellow-600 transition text-sm"
+                        >
+                          Editar
+                        </button>
+                        {inativo && (
+                          <button
+                            onClick={() => ativarProduto(product._id)}
+                            className="bg-green-600 text-white px-4 py-1.5 rounded-md hover:bg-green-700 transition text-sm"
+                          >
+                            Ativar
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
 
         {carrinho.length > 0 && (
@@ -212,6 +244,7 @@ export default function Products() {
           message={`Essa ação desativará permanentemente "${selectedProduct.name}".`}
         />
       )}
+
       <EditProductModal
         open={editModalOpen}
         onClose={() => {

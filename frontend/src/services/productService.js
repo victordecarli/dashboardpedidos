@@ -1,9 +1,10 @@
 import { api } from './api';
 
-// Listar produtos (visível para todos)
-export const getProducts = async () => {
+// Listar produtos (visível para todos ou todos os produtos se admin)
+export const getProducts = async (all = false) => {
   try {
-    const res = await api.get('/products');
+    const url = all ? '/products?all=true' : '/products';
+    const res = await api.get(url);
     return res;
   } catch (error) {
     console.error('Erro ao buscar produtos:', error);
