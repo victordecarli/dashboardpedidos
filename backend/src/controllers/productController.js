@@ -1,12 +1,11 @@
 // controllers/productController.js
 const Product = require('../models/Product');
 
-
 // Função auxiliar para tratar erros do Mongoose
 function handleMongooseError(err, res) {
   // Erro de validação (ex.: campos obrigatórios, formato inválido)
   if (err.name === 'ValidationError') {
-    const messages = Object.values(err.errors).map(val => val.message);
+    const messages = Object.values(err.errors).map((val) => val.message);
     return res.status(422).json({ error: messages });
   }
 
@@ -20,26 +19,23 @@ function handleMongooseError(err, res) {
   return res.status(500).json({ error: 'Erro interno do servidor' });
 }
 
-
 // 📌 Criar um novo produto (CREATE)
 exports.createProduct = async (req, res) => {
   try {
     const { name, price, description, status, stock } = req.body;
 
-       if (!name || price === undefined || stock === undefined) {
+    if (!name || price === undefined || stock === undefined) {
       return res
         .status(400)
         .json({ error: 'Nome, preço e estoque são obrigatórios.' });
     }
-     if (!name || name.trim() === '') {
-       return res
-         .status(400)
-         .json({ error: 'Nome é obrigatório e não pode ser vazio.' });
-    }
-      if (price < 0) {
+    if (!name || name.trim() === '') {
       return res
         .status(400)
-        .json({ error: 'O preço não pode ser negativo.' });
+        .json({ error: 'Nome é obrigatório e não pode ser vazio.' });
+    }
+    if (price < 0) {
+      return res.status(400).json({ error: 'O preço não pode ser negativo.' });
     }
     if (stock < 0) {
       return res
@@ -47,9 +43,9 @@ exports.createProduct = async (req, res) => {
         .json({ error: 'O estoque não pode ser negativo.' });
     }
     if (price == null) {
-       return res
-         .status(400)
-         .json({ error: 'Preço é obrigatório e não pode ser nulo.' });
+      return res
+        .status(400)
+        .json({ error: 'Preço é obrigatório e não pode ser nulo.' });
     }
     if (stock == null) {
       return res
@@ -58,7 +54,7 @@ exports.createProduct = async (req, res) => {
     }
 
     const existingProduct = await Product.findOne({ name });
-     if (existingProduct) {
+    if (existingProduct) {
       return res
         .status(409)
         .json({ error: 'Já existe um produto cadastrado com esse nome.' });
@@ -75,7 +71,10 @@ exports.createProduct = async (req, res) => {
 // 📌 Buscar todos os produtos ativos (READ)
 exports.getProducts = async (req, res) => {
   try {
-    const products = await Product.find({ status: 'ativo' });
+    const includeAll = req.query.all === 'true';
+    const filter = includeAll ? {} : { status: 'ativo' };
+
+    const products = await Product.find(filter);
     res.json(products);
   } catch (err) {
     handleMongooseError(err, res);
@@ -101,9 +100,7 @@ exports.updateProduct = async (req, res) => {
     const { name, price, description, status, stock } = req.body;
 
     if (price < 0) {
-      return res
-        .status(400)
-        .json({ error: 'O preço não pode ser negativo.' });
+      return res.status(400).json({ error: 'O preço não pode ser negativo.' });
     }
     if (stock < 0) {
       return res
@@ -113,10 +110,11 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       { name, price, description, status, stock },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
-    if (!product) return res.status(404).json({ error: 'Produto não encontrado' });
+    if (!product)
+      return res.status(404).json({ error: 'Produto não encontrado' });
 
     res.json({ message: 'Produto atualizado com sucesso', product });
   } catch (err) {
@@ -128,7 +126,8 @@ exports.updateProduct = async (req, res) => {
 exports.toggleProductStatus = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ error: 'Produto não encontrado' });
+    if (!product)
+      return res.status(404).json({ error: 'Produto não encontrado' });
 
     product.status = product.status === 'ativo' ? 'inativo' : 'ativo';
     await product.save();
@@ -137,7 +136,7 @@ exports.toggleProductStatus = async (req, res) => {
       message: `Produto ${
         product.status === 'ativo' ? 'ativado' : 'desativado'
       } com sucesso`,
-      product
+      product,
     });
   } catch (err) {
     handleMongooseError(err, res);
@@ -148,7 +147,7 @@ exports.toggleProductStatus = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
-     if (!product) {
+    if (!product) {
       return res.status(404).json({ error: 'Produto não encontrado.' });
     }
 
