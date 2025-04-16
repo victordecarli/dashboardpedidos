@@ -1,19 +1,27 @@
 import axios from 'axios';
 import { getAuthToken, clearAuth } from '../utils/authStorage';
 
-<<<<<<< HEAD
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3030';
-=======
 // Determina a URL base da API dinamicamente
 const getCurrentHost = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
   const protocol = window.location.protocol;
   const hostname = window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname;
   return `${protocol}//${hostname}:3030/api`;
 };
 
+const getCurrentServerUrl = () => {
+  if (import.meta.env.VITE_SERVER_URL) {
+    return import.meta.env.VITE_SERVER_URL;
+  }
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname;
+  return `${protocol}//${hostname}:3030`;
+};
+
 const API_URL = getCurrentHost();
->>>>>>> a0ab7698e20714c45119b177382ca6090dee0376
+const SERVER_URL = getCurrentServerUrl();
 
 export const api = axios.create({
   baseURL: API_URL,
