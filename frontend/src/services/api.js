@@ -20,4 +20,5 @@ export const setAuthToken = (token) => {
   }
 };
 
+// Garante que o token esteja presente no axios assim que o app inicia
 setAuthToken();

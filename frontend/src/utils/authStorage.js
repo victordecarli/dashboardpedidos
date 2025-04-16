@@ -5,16 +5,13 @@ export const storeAuth = (token, role, rememberMe = false) => {
   storage.setItem('role', role);
 };
 
-// Recupera o token do localStorage ou sessionStorage (prioridade: local)
-export const getAuthToken = () => localStorage.getItem('token') || sessionStorage.getItem('token');
-
-// Recupera o papel do usuário
-export const getUserRole = () => localStorage.getItem('role') || sessionStorage.getItem('role');
+// Recupera o token
+export const getAuthToken = () => {
+  return localStorage.getItem('token') || sessionStorage.getItem('token');
+};
 
 // Remove tudo (logout)
 export const clearAuth = () => {
   localStorage.removeItem('token');
-  localStorage.removeItem('role');
   sessionStorage.removeItem('token');
-  sessionStorage.removeItem('role');
 };

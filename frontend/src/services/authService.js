@@ -1,10 +1,17 @@
 import { api } from './api';
 
+// Login de usuário
 export const login = async (credentials) => {
-  return api.post('/auth/login', credentials);
+  try {
+    const response = await api.post('/auth/login', credentials);
+    return response;
+  } catch (error) {
+    // Retorna erro mais informativo, se possível
+    throw error.response?.data || error;
+  }
 };
 
-// Criação de usuário
-export const register = (data) => {
-  return api.post('/auth/register', data);
+// Registro de novo usuário
+export const register = async (data) => {
+  return await api.post('/auth/register', data);
 };

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { getProducts } from '../services/productService';
+import { getProducts, updateProduct } from '../services/productService';
 import { createOrder } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
 import { useNavigate } from 'react-router-dom';
 import AdminNavbar from '../components/AdminNavbar';
-import { updateProduct } from '../services/productService';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { getUserRole } from '../utils/auth'; // 👈 IMPORTAÇÃO ADICIONADA
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -13,6 +13,8 @@ export default function Products() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState();
   const navigate = useNavigate();
+
+  const isAdmin = getUserRole() === 'admin'; // 👈 NOVO: checagem via JWT
 
   useEffect(() => {
     getProducts()
@@ -37,10 +39,8 @@ export default function Products() {
       const novaQuantidadeTotal = quantidadeAtual + 1;
       const novoEstoqueRestante = produto.stock - novaQuantidadeTotal;
 
-      // Se estoque chegou a 0, atualiza no backend
       if (novoEstoqueRestante === 0) {
         updateProduct(produto._id, { active: false }).then(() => {
-          // Atualiza localmente também (opcional, mas melhora UX)
           setProducts((prevProducts) => prevProducts.map((p) => (p._id === produto._id ? { ...p, active: false } : p)));
         });
       }
@@ -59,7 +59,6 @@ export default function Products() {
         .map((item) => (item._id === produtoId ? { ...item, quantity: novaQuantidade } : item))
         .filter((item) => item.quantity > 0);
 
-      // Se antes o estoque estava em 0 e agora voltou a ter (ex: 1)
       const novoEstoque = produtoNoCarrinho.stock - novaQuantidade;
 
       if (novoEstoque >= 1 && produtoNoCarrinho.status === 'inativo') {
@@ -85,7 +84,7 @@ export default function Products() {
       await createOrder(payload);
       alert('✅ Pedido enviado com sucesso!');
       setCarrinho([]);
-      navigate('/orders'); // redireciona para tela de pedidos
+      navigate('/orders');
     } catch (err) {
       console.error('Erro ao enviar pedido:', err);
       alert('❌ Erro ao enviar pedido. Tente novamente.');
@@ -127,7 +126,8 @@ export default function Products() {
                   >
                     Adicionar
                   </button>
-                  {localStorage.getItem('role') === 'admin' && (
+
+                  {isAdmin && (
                     <button
                       onClick={() => {
                         setSelectedProduct(product);
@@ -176,6 +176,7 @@ export default function Products() {
           </div>
         )}
       </main>
+
       {selectedProduct && (
         <ConfirmDialog
           open={modalOpen}

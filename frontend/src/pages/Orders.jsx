@@ -10,11 +10,13 @@ export default function Orders() {
   useEffect(() => {
     getOrdersByUser()
       .then((res) => {
-        setOrders(res.data.data);
-        setLoading(false);
+        setOrders(res.data?.data || []);
       })
-      .catch(() => {
-        alert('Erro ao carregar pedidos');
+      .catch((err) => {
+        console.error(err);
+        alert('Erro ao carregar pedidos.');
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, []);
@@ -26,19 +28,19 @@ export default function Orders() {
         <h1 className="text-2xl font-bold mb-4">Meus Pedidos</h1>
 
         {loading ? (
-          <p>Carregando...</p>
+          <p className="text-gray-500">Carregando pedidos...</p>
         ) : orders.length === 0 ? (
           <p className="text-gray-500">Nenhum pedido encontrado.</p>
         ) : (
           orders.map((order) => (
-            <div key={order.id} className="border p-4 rounded mb-4 shadow-sm">
+            <div key={order.id} className="border p-4 rounded mb-4 shadow-sm bg-white">
               <div className="flex justify-between items-center mb-2">
                 <h2 className="font-semibold">Pedido #{order.id.slice(-6)}</h2>
-                <span className="text-sm text-gray-600">{order.data_pedido}</span>
+                <span className="text-sm text-gray-600">{new Date(order.data_pedido).toLocaleDateString('pt-BR')}</span>
               </div>
 
               <ul className="text-sm mb-2">
-                {order.products.map((item, idx) => (
+                {order.products?.map((item, idx) => (
                   <li key={idx} className="flex justify-between">
                     <span>
                       {item.product_name} x{item.quantity}
@@ -54,7 +56,17 @@ export default function Orders() {
               </div>
 
               <div className="mt-1 text-sm">
-                <span className="px-2 py-1 rounded bg-blue-100 text-blue-800">{order.status}</span>
+                <span
+                  className={`px-2 py-1 rounded font-medium ${
+                    order.status === 'pendente'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : order.status === 'concluído'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {order.status}
+                </span>
               </div>
             </div>
           ))

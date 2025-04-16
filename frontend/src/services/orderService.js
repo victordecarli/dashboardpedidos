@@ -2,8 +2,8 @@
 import { api } from './api';
 
 // Criar pedido
-export const createOrder = (data) => {
-  return api.post('/orders', data);
+export const createOrder = async (data) => {
+  return await api.post('/orders', data);
 };
 
 // Buscar pedidos do usuário autenticado

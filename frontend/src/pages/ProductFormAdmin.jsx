@@ -16,12 +16,12 @@ export default function ProductFormAdmin() {
 
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const isAdmin = getUserRole() === 'admin';
-
   useEffect(() => {
-    if (!isAdmin) {
+    const role = getUserRole();
+    if (role !== 'admin') {
       setShowModal(true);
     }
   }, []);
@@ -35,23 +35,33 @@ export default function ProductFormAdmin() {
     e.preventDefault();
     setError(null);
 
+    const payload = {
+      ...form,
+      price: parseFloat(form.price),
+      stock: parseInt(form.stock),
+    };
+
+    if (payload.price < 0 || payload.stock < 0) {
+      setError('Preço e estoque não podem ser negativos.');
+      return;
+    }
+
     try {
-      const payload = {
-        ...form,
-        price: parseFloat(form.price),
-        stock: parseInt(form.stock),
-      };
+      setIsSubmitting(true);
       await createProduct(payload);
       alert('✅ Produto cadastrado com sucesso!');
       navigate('/products');
     } catch (err) {
       console.error(err);
       setError('Erro ao cadastrar produto. Verifique os dados ou permissão.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <>
+      <AdminNavbar />
       {showModal && (
         <Modal
           onClose={() => {
@@ -60,19 +70,14 @@ export default function ProductFormAdmin() {
           }}
           title="Acesso Negado"
         >
-          <p className="text-center text-red-600">
-            ⛔ Esta página é exclusiva para administradores.
-          </p>
+          <p className="text-center text-red-600">⛔ Esta página é exclusiva para administradores.</p>
         </Modal>
       )}
 
       {!showModal && (
         <div className="p-4 max-w-4xl mx-auto">
-          <AdminNavbar />
           <div className="max-w-xl mx-auto p-6 bg-white rounded-2xl shadow-md">
-            <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">
-              Cadastrar Novo Produto
-            </h1>
+            <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">Cadastrar Novo Produto</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 name="name"
@@ -119,13 +124,14 @@ export default function ProductFormAdmin() {
               </select>
               <button
                 type="submit"
-                className="bg-blue-600 text-white w-full px-4 py-2 rounded-xl hover:bg-blue-700 transition"
+                disabled={isSubmitting}
+                className={`bg-blue-600 text-white w-full px-4 py-2 rounded-xl transition ${
+                  isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+                }`}
               >
-                Cadastrar Produto
+                {isSubmitting ? 'Enviando...' : 'Cadastrar Produto'}
               </button>
-              {error && (
-                <p className="text-red-600 text-sm text-center">{error}</p>
-              )}
+              {error && <p className="text-red-600 text-sm text-center">{error}</p>}
             </form>
           </div>
         </div>

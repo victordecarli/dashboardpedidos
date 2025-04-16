@@ -1,12 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { logout } from '../utils/auth';
-// react-icons
+import { logout, getUserRole } from '../utils/auth';
 import { ImExit } from 'react-icons/im';
 
 export default function AdminNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const role = localStorage.getItem('role');
+  const role = getUserRole(); // Corrigido: lê direto do token
+  const isAdmin = role === 'admin';
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -22,7 +23,7 @@ export default function AdminNavbar() {
   return (
     <nav className="bg-[#0f172a] text-white flex justify-between items-center px-6 py-3 mb-6">
       <div className="font-bold text-lg">
-        <span className="font-bold text-lg ">{role === 'admin' ? 'Admin' : 'User'}</span>
+        <span>{isAdmin ? 'Admin' : 'User'}</span>
       </div>
       <div className="flex items-center gap-4 text-sm">
         <Link to="/products" className={navItemClass('/products')}>
@@ -31,7 +32,7 @@ export default function AdminNavbar() {
         <Link to="/orders" className={navItemClass('/orders')}>
           Meus Pedidos
         </Link>
-        {role === 'admin' && (
+        {isAdmin && (
           <>
             <Link to="/admin-orders" className={navItemClass('/admin-orders')}>
               Pedidos (Admin)
@@ -41,7 +42,10 @@ export default function AdminNavbar() {
             </Link>
           </>
         )}
-        <button onClick={handleLogout} className="bg-red-500 cursor-pointer text-white font-bold px-3 py-1 rounded hover:bg-red-400 ml-2 flex gap-2 items-center">
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 cursor-pointer text-white font-bold px-3 py-1 rounded hover:bg-red-400 ml-2 flex gap-2 items-center"
+        >
           <ImExit />
           Sair
         </button>

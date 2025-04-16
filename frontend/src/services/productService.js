@@ -1,8 +1,14 @@
 import { api } from './api';
 
 // Listar produtos (visível para todos)
-export const getProducts = () => {
-  return api.get('/products');
+export const getProducts = async () => {
+  try {
+    const res = await api.get('/products');
+    return res;
+  } catch (error) {
+    console.error('Erro ao buscar produtos:', error);
+    throw error;
+  }
 };
 
 // Listar produtos por ID (visível para todos)
@@ -16,7 +22,7 @@ export const createProduct = async (productData) => {
 };
 
 // Atualizar produto (admin)
-export const updateProduct = (id, productData) => {
+export const updateProduct = async (id, productData) => {
   return api.patch(`/products/${id}`, productData);
 };
 
