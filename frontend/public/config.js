@@ -8,8 +8,8 @@
 
 window.ENV = {
   // URL da API backend
-  VITE_API_URL: 'http://15.228.157.166:3031/api',
+  VITE_API_URL: 'https://15.228.157.166:3031/api',
 
   // URL raiz do servidor backend (para imagens, etc)
-  VITE_SERVER_URL: 'http://15.228.157.166:3031',
+  VITE_SERVER_URL: 'https://15.228.157.166:3031',
 };
