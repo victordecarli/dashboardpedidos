@@ -14,6 +14,7 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -190,16 +191,20 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
                         <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             {imagePreview ? (
-                              <img
-                                src={imagePreview}
-                                alt="Preview do produto"
-                                className="w-full h-full object-contain"
-                                style={{ maxHeight: '150px' }}
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src = 'https://via.placeholder.com/150?text=Imagem+inválida';
-                                }}
-                              />
+                              imageError ? (
+                                <div className="flex flex-col items-center justify-center">
+                                  <PhotoIcon className="w-12 h-12 text-gray-400" />
+                                  <p className="mt-2 text-sm text-gray-500">Imagem não disponível</p>
+                                </div>
+                              ) : (
+                                <img
+                                  src={imagePreview}
+                                  alt="Preview do produto"
+                                  className="w-full h-full object-contain"
+                                  style={{ maxHeight: '150px' }}
+                                  onError={() => setImageError(true)}
+                                />
+                              )
                             ) : (
                               <>
                                 <PhotoIcon className="w-10 h-10 mb-3 text-gray-400" />
@@ -254,15 +259,19 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
 
                   <div className="aspect-square bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
                     {imagePreview ? (
-                      <img
-                        src={imagePreview}
-                        alt="Preview do produto"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://via.placeholder.com/300?text=Imagem+inválida';
-                        }}
-                      />
+                      imageError ? (
+                        <div className="flex flex-col items-center justify-center">
+                          <PhotoIcon className="w-12 h-12 text-gray-400" />
+                          <p className="mt-2 text-sm text-gray-500">Imagem não disponível</p>
+                        </div>
+                      ) : (
+                        <img
+                          src={imagePreview}
+                          alt="Preview do produto"
+                          className="w-full h-full object-cover"
+                          onError={() => setImageError(true)}
+                        />
+                      )
                     ) : (
                       <PhotoIcon className="w-12 h-12 text-gray-400" />
                     )}

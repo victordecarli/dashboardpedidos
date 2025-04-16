@@ -22,18 +22,32 @@ const app = express();
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
-  logger.info('Diretório de uploads criado');
+  logger.info('Diretório de uploads criado em:', uploadsDir);
 }
 
-// Middlewares
+// Log de todas as requisições
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+});
+
+// Configuração do CORS
 app.use(cors());
+
+// Middlewares básicos
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Servir arquivos estáticos da pasta uploads
 app.use('/uploads', express.static(uploadsDir));
 
-app.use('/api', routes); // Isso vai montar /api/auth, /api/users, etc.
+// Rotas da API
+app.use('/api', routes);
+
+// Rota básica
+app.get('/', (req, res) => {
+  res.send('Servidor rodando! 🚀');
+});
 
 const PORT = process.env.PORT || 3030;
 mongoose
@@ -48,10 +62,6 @@ mongoose
     logger.error('Erro ao conectar ao MongoDB:', err.message);
     process.exit(1);
   });
-
-app.get('/', (req, res) => {
-  res.send('Servidor rodando! 🚀');
-});
 
 // Manipulação global de erros
 app.use((err, req, res, next) => {

@@ -63,19 +63,19 @@ exports.createProduct = async (req, res) => {
     // Verificar se existe uma imagem
     let imagePath = '';
     if (req.file) {
-      // O caminho da imagem será relativo à raiz do servidor
-      imagePath = `/uploads/${req.file.filename}`;
+      // O caminho da imagem será relativo à pasta uploads
+      imagePath = `uploads/${req.file.filename}`;
     }
 
-    const product = new Product({ 
-      name, 
-      price, 
-      description, 
-      status, 
+    const product = new Product({
+      name,
+      price,
+      description,
+      status,
       stock,
-      image: imagePath
+      image: imagePath, // Salvar sem a barra inicial
     });
-    
+
     await product.save();
     res.status(201).json({ message: 'Produto criado com sucesso', product });
   } catch (err) {
@@ -125,17 +125,16 @@ exports.updateProduct = async (req, res) => {
 
     // Verificar se existe uma imagem
     const updateData = { name, price, description, status, stock };
-    
+
     if (req.file) {
-      // O caminho da imagem será relativo à raiz do servidor
-      updateData.image = `/uploads/${req.file.filename}`;
+      // O caminho da imagem será relativo à pasta uploads
+      updateData.image = `uploads/${req.file.filename}`;
     }
 
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true },
-    );
+    const product = await Product.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!product)
       return res.status(404).json({ error: 'Produto não encontrado' });

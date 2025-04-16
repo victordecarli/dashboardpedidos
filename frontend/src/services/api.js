@@ -3,12 +3,25 @@ import { getAuthToken, clearAuth } from '../utils/authStorage';
 
 // Determina a URL base da API dinamicamente
 const getCurrentHost = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
   const protocol = window.location.protocol;
   const hostname = window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname;
   return `${protocol}//${hostname}:3030/api`;
 };
 
+const getCurrentServerUrl = () => {
+  if (import.meta.env.VITE_SERVER_URL) {
+    return import.meta.env.VITE_SERVER_URL;
+  }
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname;
+  return `${protocol}//${hostname}:3030`;
+};
+
 const API_URL = getCurrentHost();
+const SERVER_URL = getCurrentServerUrl();
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -16,6 +29,14 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Função para obter a URL completa de uma imagem
+export const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  // Remover a barra inicial se existir para evitar dupla barra
+  const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+  return `${SERVER_URL}/${cleanPath}`;
+};
 
 export const setAuthToken = (token) => {
   const finalToken = token || getAuthToken();
