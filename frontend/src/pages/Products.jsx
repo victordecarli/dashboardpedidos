@@ -236,7 +236,9 @@ export default function Products() {
   // Filtro de produtos
   const produtosFiltrados = products.filter((product) => {
     const matchSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = statusFilter === 'todos' || product.status === statusFilter || !isAdmin;
+    const matchStatus = isAdmin
+      ? statusFilter === 'todos' || product.status === statusFilter
+      : product.status === 'ativo';
     const matchMin = minPrice === '' || product.price >= parseFloat(minPrice);
     const matchMax = maxPrice === '' || product.price <= parseFloat(maxPrice);
     return matchSearch && matchStatus && matchMin && matchMax;

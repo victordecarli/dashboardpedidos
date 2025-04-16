@@ -46,10 +46,8 @@ export default function ClientDashboard() {
 
       // Calcular estatísticas
       const total = orders.length;
-      const pending = orders.filter(
-        (order) => order.status === 'Pendente' || order.status === 'Em processamento',
-      ).length;
-      const completed = orders.filter((order) => order.status === 'Entregue' || order.status === 'Concluído').length;
+      const pending = orders.filter((order) => order.status === 'processando').length;
+      const completed = orders.filter((order) => order.status === 'finalizado').length;
 
       setStatistics({
         totalOrders: total,
