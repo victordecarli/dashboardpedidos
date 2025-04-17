@@ -38,8 +38,8 @@ const config = {
   // CORS
   cors: {
     origin: isProduction 
-      ? [process.env.VITE_SERVER_URL || 'https://dashboardpedidos-production-cedf.up.railway.app/api'] 
-      : ['http://localhost:3031', 'http://localhost:5173', 'http://localhost:5174'],
+      ? [process.env.FRONTEND_URL || 'https://dashboardpedidos.vercel.app']
+      : ['http://localhost:3000', 'http://localhost:3031', 'http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204,

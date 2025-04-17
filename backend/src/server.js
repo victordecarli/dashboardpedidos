@@ -25,7 +25,13 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Middlewares
 app.use(morgan('dev'));
+
+// Configuração do CORS
 app.use(cors(config.cors));
+
+// Responder a preflight requests para todas as rotas
+app.options('*', cors(config.cors));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
