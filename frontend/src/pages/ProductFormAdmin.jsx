@@ -7,6 +7,7 @@ import { PhotoIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { currencyFormat } from '../utils/currencyFormat';
 import MainNavbar from '../components/MainNavbar';
+import { compressImage } from '../utils/imageCompression';
 
 export default function ProductFormAdmin() {
   const [form, setForm] = useState({
@@ -36,7 +37,7 @@ export default function ProductFormAdmin() {
     setForm({ ...form, [name]: value });
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -53,14 +54,27 @@ export default function ProductFormAdmin() {
       return;
     }
 
-    setImageFile(file);
+    try {
+      // Comprime a imagem antes de salvar
+      const compressedImage = await compressImage(file);
+      setImageFile(compressedImage);
 
-    // Gera uma URL temporária para preview
-    const objectUrl = URL.createObjectURL(file);
-    setImagePreview(objectUrl);
+      // Gera uma URL temporária para preview
+      const objectUrl = URL.createObjectURL(compressedImage);
+      setImagePreview(objectUrl);
 
-    // Limpa a URL quando o componente for desmontado
-    return () => URL.revokeObjectURL(objectUrl);
+      // Mostra feedback do tamanho da compressão
+      const reduction = (((file.size - compressedImage.size) / file.size) * 100).toFixed(1);
+      if (compressedImage.size < file.size) {
+        toast.success(`Imagem comprimida! Redução de ${reduction}%`);
+      }
+
+      // Limpa a URL quando o componente for desmontado
+      return () => URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error('Erro ao processar imagem:', error);
+      toast.error('Erro ao processar imagem');
+    }
   };
 
   const handleSubmit = async (e) => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild, DialogBackdrop } from '@headlessui/react';
 import toast from 'react-hot-toast';
 import { PhotoIcon } from '@heroicons/react/24/outline';
+import { compressImage } from '../utils/imageCompression';
 
 export default function EditProductModal({ open, onClose, onSave, product }) {
   const [form, setForm] = useState({
@@ -38,7 +39,7 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -55,14 +56,27 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
       return;
     }
 
-    setImageFile(file);
+    try {
+      // Comprime a imagem antes de salvar
+      const compressedImage = await compressImage(file);
+      setImageFile(compressedImage);
 
-    // Gera uma URL temporária para preview
-    const objectUrl = URL.createObjectURL(file);
-    setImagePreview(objectUrl);
+      // Gera uma URL temporária para preview
+      const objectUrl = URL.createObjectURL(compressedImage);
+      setImagePreview(objectUrl);
 
-    // Limpa a URL quando o componente for desmontado
-    return () => URL.revokeObjectURL(objectUrl);
+      // Mostra feedback do tamanho da compressão
+      const reduction = (((file.size - compressedImage.size) / file.size) * 100).toFixed(1);
+      if (compressedImage.size < file.size) {
+        toast.success(`Imagem comprimida! Redução de ${reduction}%`);
+      }
+
+      // Limpa a URL quando o componente for desmontado
+      return () => URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error('Erro ao processar imagem:', error);
+      toast.error('Erro ao processar imagem');
+    }
   };
 
   const handleSubmit = async (e) => {

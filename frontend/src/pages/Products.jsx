@@ -9,6 +9,7 @@ import { getUserRole } from '../utils/auth';
 import EditProductModal from '../components/EditProductModal';
 import { Switch } from '@headlessui/react';
 import toast, { Toaster } from 'react-hot-toast';
+import { NoImageIcon, UploadImageIcon, ImageErrorIcon } from '../components/icons/NoImageIcon';
 import {
   ListBulletIcon,
   Squares2X2Icon,
@@ -26,7 +27,6 @@ import {
   ExclamationCircleIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  PhotoIcon,
 } from '@heroicons/react/24/outline';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -457,18 +457,63 @@ export default function Products() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="border rounded-xl overflow-hidden bg-white shadow-sm animate-pulse">
-                <div className="p-6 space-y-4">
-                  <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-10 bg-gray-200 rounded w-full"></div>
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="border rounded-xl overflow-hidden bg-white shadow-sm">
+                  <div className="aspect-[4/3] bg-gray-100 animate-pulse" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-6 bg-gray-200 rounded-md animate-pulse w-3/4" />
+                    <div className="h-7 bg-gray-200 rounded-md animate-pulse w-1/3" />
+                    <div className="h-4 bg-gray-200 rounded-md animate-pulse w-full" />
+                    <div className="h-4 bg-gray-200 rounded-md animate-pulse w-2/3" />
+                    <div className="flex gap-2 pt-2">
+                      <div className="h-10 bg-gray-200 rounded-lg animate-pulse w-full" />
+                      {isAdmin && (
+                        <div className="flex gap-2 w-full">
+                          <div className="h-10 bg-gray-200 rounded-lg animate-pulse w-1/2" />
+                          <div className="h-10 bg-gray-200 rounded-lg animate-pulse w-1/2" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col md:flex-row justify-between border rounded-xl overflow-hidden bg-white shadow-sm"
+                >
+                  <div className="flex flex-row w-full h-full justify-center text-center pl-3 items-center">
+                    <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-gray-100 rounded-lg animate-pulse m-3" />
+                    <div className="flex-1 p-4 space-y-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="h-6 bg-gray-200 rounded-md animate-pulse w-1/4" />
+                        <div className="h-6 bg-gray-200 rounded-md animate-pulse w-20" />
+                      </div>
+                      <div className="h-7 bg-gray-200 rounded-md animate-pulse w-24" />
+                      <div className="flex items-center gap-6">
+                        <div className="h-5 bg-gray-200 rounded-md animate-pulse w-32" />
+                        <div className="h-5 bg-gray-200 rounded-md animate-pulse w-48" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-10 bg-gray-200 rounded-lg animate-pulse w-32" />
+                        {isAdmin && (
+                          <>
+                            <div className="h-10 bg-gray-200 rounded-lg animate-pulse w-24" />
+                            <div className="h-10 bg-gray-200 rounded-lg animate-pulse w-24" />
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         ) : produtosFiltrados.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
             <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -507,12 +552,10 @@ export default function Products() {
                               e.target.setAttribute('data-error-handled', 'true');
                               e.target.style.display = 'none';
                               e.target.parentElement.innerHTML = `
-                                <div class="w-full h-full flex items-center justify-center bg-gray-50">
+                                <div class="w-full h-full flex items-center justify-center">
                                   <div class="flex flex-col items-center justify-center">
-                                    <svg class="w-12 h-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <p class="mt-2 text-sm text-gray-500">Imagem não disponível</p>
+                                    <ImageErrorIcon />
+                                    <p class="mt-2 text-sm text-gray-500">Erro ao carregar imagem</p>
                                   </div>
                                 </div>
                               `;
@@ -522,7 +565,7 @@ export default function Products() {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-50">
                           <div className="flex flex-col items-center justify-center">
-                            <PhotoIcon className="w-12 h-12 text-gray-400" />
+                            <NoImageIcon />
                             <p className="mt-2 text-sm text-gray-500">Sem imagem</p>
                           </div>
                         </div>
@@ -624,12 +667,10 @@ export default function Products() {
                               e.target.setAttribute('data-error-handled', 'true');
                               e.target.style.display = 'none';
                               e.target.parentElement.innerHTML = `
-                                <div class="w-full h-full flex items-center justify-center bg-gray-50">
+                                <div class="w-full h-full flex items-center justify-center">
                                   <div class="flex flex-col items-center justify-center">
-                                    <svg class="w-12 h-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <p class="mt-2 text-sm text-gray-500">Imagem não disponível</p>
+                                    <ImageErrorIcon className="w-8 h-8" />
+                                    <p class="mt-1 text-xs text-gray-500">Erro ao carregar</p>
                                   </div>
                                 </div>
                               `;
@@ -638,7 +679,7 @@ export default function Products() {
                         </div>
                       ) : (
                         <div className="w-24 h-24 md:w-32 md:h-32 flex items-center justify-center bg-gray-50">
-                          <PhotoIcon className="w-8 h-8 text-gray-400" />
+                          <NoImageIcon className="w-8 h-8" />
                         </div>
                       )}
                     </div>
