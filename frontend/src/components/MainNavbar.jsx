@@ -111,7 +111,7 @@ export default function MainNavbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <Link to={isAdmin ? '/admin-orders' : '/dashboard'} className="flex items-center gap-2">
+              <Link to={isAdmin ? '/admin-dashboard' : '/dashboard'} className="flex items-center gap-2">
                 <Motion.span
                   initial={{ rotate: 0 }}
                   whileHover={{ rotate: 5 }}
@@ -127,8 +127,13 @@ export default function MainNavbar() {
 
             {/* Links para desktop */}
             <div className="hidden md:flex items-center gap-3">
-              {!isAdmin && (
+              {!isAdmin ? (
                 <Link to="/dashboard" className={navItemClass('/dashboard')}>
+                  <LayoutDashboard size={16} />
+                  Dashboard
+                </Link>
+              ) : (
+                <Link to="/admin-dashboard" className={navItemClass('/admin-dashboard')}>
                   <LayoutDashboard size={16} />
                   Dashboard
                 </Link>
@@ -201,8 +206,17 @@ export default function MainNavbar() {
                 <button onClick={closeMobileMenu} className="absolute top-4 right-4 text-indigo-100 hover:text-white">
                   <X size={24} />
                 </button>
-                {!isAdmin && (
+                {!isAdmin ? (
                   <Link to="/dashboard" className={mobileNavItemClass('/dashboard')} onClick={closeMobileMenu}>
+                    <LayoutDashboard size={20} />
+                    Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    to="/admin-dashboard"
+                    className={mobileNavItemClass('/admin-dashboard')}
+                    onClick={closeMobileMenu}
+                  >
                     <LayoutDashboard size={20} />
                     Dashboard
                   </Link>

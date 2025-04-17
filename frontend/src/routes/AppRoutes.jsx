@@ -11,6 +11,7 @@ import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
 import { isAuthenticated, getUserRole } from '../utils/auth';
 import ClientDashboard from '../pages/ClientDashboard';
+import AdminDashboard from '../pages/AdminDashboard';
 
 // Componente para redirecionar a rota inicial baseado no estado de autenticação
 const HomeRedirect = () => {
@@ -18,10 +19,10 @@ const HomeRedirect = () => {
     return <Navigate to="/login" />;
   }
 
-  // Redirecionar usuários comuns para o dashboard e admins para a lista de produtos
+  // Redirecionar usuários comuns para o dashboard e admins para o dashboard administrativo
   const userRole = getUserRole()?.toLowerCase();
   if (userRole === 'admin') {
-    return <Navigate to="/admin-orders" />;
+    return <Navigate to="/admin-dashboard" />;
   }
 
   return <Navigate to="/dashboard" />;
@@ -90,6 +91,14 @@ export default function AppRoutes() {
         />
 
         {/* Rotas exclusivas para administradores */}
+        <Route
+          path="/admin-dashboard"
+          element={
+            <PrivateRoute adminOnly>
+              <AdminDashboard />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/admin-orders"
           element={

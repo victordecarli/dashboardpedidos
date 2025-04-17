@@ -53,8 +53,8 @@ const getCurrentServerUrl = () => {
 const API_URL = getCurrentHost();
 const SERVER_URL = getCurrentServerUrl();
 
-console.log('API URL:', API_URL);
-console.log('SERVER URL:', SERVER_URL);
+// console.log('API URL:', API_URL);
+// console.log('SERVER URL:', SERVER_URL);
 
 export const api = axios.create({
   baseURL: API_URL,

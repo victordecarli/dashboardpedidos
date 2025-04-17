@@ -658,9 +658,9 @@ export default function Products() {
                           </span>
                         )}
                       </div>
-
-                      <p className="text-xl font-bold text-indigo-600 mb-1">{currencyFormat(product.price)}</p>
-
+                      <p className="text-xl font-bold text-indigo-600 mb-1 flex items-center">
+                        {currencyFormat(product.price)}
+                      </p>
                       <div className="flex items-center gap-6 mt-1">
                         <p className="text-sm text-gray-600 flex items-center gap-1.5">
                           <ArchiveBoxIcon className="w-4 h-4 text-gray-400" />
