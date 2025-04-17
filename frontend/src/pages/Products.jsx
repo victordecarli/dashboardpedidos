@@ -28,8 +28,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@heroicons/react/24/outline';
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { getImageUrl } from '../services/api';
 
 export default function Products() {
@@ -40,7 +39,7 @@ export default function Products() {
   const [editProduct, setEditProduct] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos');
+  const [statusFilter, setStatusFilter] = useState('ativo');
   const [viewMode, setViewMode] = useState('list');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -78,7 +77,7 @@ export default function Products() {
     const quantidadeAtual = existe ? existe.quantity : 0;
 
     if (quantidadeAtual >= produto.stock) {
-      toast.error(`❌ Estoque máximo atingido para: ${produto.name}`);
+      toast.error(`Estoque máximo atingido para: ${produto.name}`);
       return;
     }
 
@@ -219,7 +218,7 @@ export default function Products() {
       toast.success('Produto desativado!');
     } catch (err) {
       console.error('Erro ao desativar produto:', err);
-      toast.error('❌ Não foi possível desativar o produto.');
+      toast.error('Não foi possível desativar o produto.');
     }
   };
 
@@ -230,7 +229,7 @@ export default function Products() {
       toast.success('Produto ativado!');
     } catch (err) {
       console.error('Erro ao ativar produto:', err);
-      toast.error('❌ Não foi possível ativar o produto.');
+      toast.error('Não foi possível ativar o produto.');
     }
   };
 
@@ -303,6 +302,7 @@ export default function Products() {
         position="top-right"
         toastOptions={{
           duration: 3000,
+
           style: {
             borderRadius: '10px',
             background: '#333',
@@ -314,14 +314,9 @@ export default function Products() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500">
               Cardápio
             </h1>
-            {isLoading && (
-              <div className="animate-pulse bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full">
-                Carregando...
-              </div>
-            )}
           </div>
           <div className="flex gap-2 items-center">
             <button
@@ -382,9 +377,9 @@ export default function Products() {
             >
               <FunnelIcon className="w-5 h-5 text-gray-500" />
               <span className="text-gray-700">Filtros</span>
-              {(minPrice || maxPrice || statusFilter !== 'todos') && (
+              {(minPrice || maxPrice || statusFilter !== 'ativo') && (
                 <span className="flex h-5 w-5 items-center justify-center bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">
-                  {(minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + (statusFilter !== 'todos' ? 1 : 0)}
+                  {(minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + (statusFilter !== 'ativo' ? 1 : 0)}
                 </span>
               )}
             </button>
@@ -419,7 +414,7 @@ export default function Products() {
 
           <AnimatePresence>
             {filtersVisible && (
-              <motion.div
+              <Motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -462,16 +457,16 @@ export default function Products() {
                       <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-nring-2 focus:ring-indigo-500"
                       >
-                        <option value="todos">Todos os produtos</option>
                         <option value="ativo">Somente Ativos</option>
                         <option value="inativo">Somente Inativos</option>
+                        <option value="todos">Todos os produtos</option>
                       </select>
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </Motion.div>
             )}
           </AnimatePresence>
         </div>
@@ -480,7 +475,7 @@ export default function Products() {
           viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="border rounded-xl overflow-hidden bg-white shadow-sm">
+                <div key={i} className="rounded-xl overflow-hidden bg-white shadow-sm">
                   <div className="aspect-[4/3] bg-gray-100 animate-pulse" />
                   <div className="p-5 space-y-3">
                     <div className="h-6 bg-gray-200 rounded-md animate-pulse w-3/4" />
@@ -505,7 +500,7 @@ export default function Products() {
               {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
-                  className="flex flex-col md:flex-row justify-between border rounded-xl overflow-hidden bg-white shadow-sm"
+                  className="flex flex-col md:flex-row justify-between rounded-xl overflow-hidden bg-white shadow-sm"
                 >
                   <div className="flex flex-row w-full h-full justify-center text-center pl-3 items-center">
                     <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-gray-100 rounded-lg animate-pulse m-3" />
@@ -541,7 +536,7 @@ export default function Products() {
             <p className="mt-2 text-sm text-gray-500">Tente ajustar seus filtros ou buscar por outro nome.</p>
           </div>
         ) : viewMode === 'grid' ? (
-          <motion.div
+          <Motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -550,7 +545,7 @@ export default function Products() {
             {produtosOrdenados.map((product) => {
               const inativo = product.status === 'inativo';
               return (
-                <motion.div
+                <Motion.div
                   key={product._id}
                   variants={itemVariants}
                   className={`border rounded-xl overflow-hidden transition-all duration-300 ${
@@ -656,16 +651,16 @@ export default function Products() {
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </Motion.div>
               );
             })}
-          </motion.div>
+          </Motion.div>
         ) : (
-          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex flex-col gap-4">
+          <Motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex flex-col gap-4">
             {produtosOrdenados.map((product) => {
               const inativo = product.status === 'inativo';
               return (
-                <motion.div
+                <Motion.div
                   key={product._id}
                   variants={itemVariants}
                   className={`flex flex-col md:flex-row justify-between border rounded-xl overflow-hidden transition-all duration-300 ${
@@ -776,22 +771,22 @@ export default function Products() {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </Motion.div>
               );
             })}
-          </motion.div>
+          </Motion.div>
         )}
 
         {/* Carrinho */}
         <AnimatePresence>
           {carrinho.length > 0 && carrinhoAberto && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               className="fixed inset-x-0 bottom-0 z-[998] overflow-hidden flex items-end md:items-start md:inset-auto md:top-20 md:right-6 md:left-auto md:bottom-auto md:w-[30rem]"
             >
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -821,7 +816,7 @@ export default function Products() {
                   ) : (
                     <ul className="space-y-5">
                       {carrinho.map((item) => (
-                        <motion.li
+                        <Motion.li
                           key={item._id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -860,7 +855,7 @@ export default function Products() {
                               <TrashIcon className="w-4 h-4" />
                             </button>
                           </div>
-                        </motion.li>
+                        </Motion.li>
                       ))}
                     </ul>
                   )}
@@ -875,12 +870,12 @@ export default function Products() {
                   </div>
 
                   {pedidoSucesso ? (
-                    <motion.div
+                    <Motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       className="w-full py-3 flex flex-col items-center justify-center gap-2"
                     >
-                      <motion.div
+                      <Motion.div
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{
@@ -892,10 +887,10 @@ export default function Products() {
                         className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-2"
                       >
                         <CheckCircleIcon className="w-10 h-10 text-green-600" />
-                      </motion.div>
+                      </Motion.div>
                       <p className="text-lg font-medium text-green-700">Pedido realizado com sucesso!</p>
                       <p className="text-sm text-gray-500">Redirecionando para seus pedidos...</p>
-                    </motion.div>
+                    </Motion.div>
                   ) : (
                     <button
                       onClick={finalizarPedido}
@@ -938,13 +933,13 @@ export default function Products() {
                   )}
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
 
         {/* Contador flutuante do carrinho para móveis */}
         {!carrinhoAberto && carrinho.length > 0 && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             className="fixed bottom-6 right-6 z-40"
@@ -954,23 +949,23 @@ export default function Products() {
               className="bg-blue-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center relative group hover:bg-blue-700 transition-all duration-200"
             >
               <ShoppingCartIcon className="w-6 h-6" />
-              <motion.span
+              <Motion.span
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center shadow-sm font-bold"
               >
                 {totalItens}
-              </motion.span>
-              <motion.div
+              </Motion.span>
+              <Motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.1 }}
                 className="absolute bottom-full right-0 mb-2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               >
                 {currencyFormat(totalCarrinho)}
-              </motion.div>
+              </Motion.div>
             </button>
-          </motion.div>
+          </Motion.div>
         )}
 
         {showScrollTop && (
