@@ -1,15 +1,11 @@
 // server.js
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
 const fs = require('fs');
 const routes = require('./routes');
 const logger = require('./utils/logger');
 const config = require('./config');
 const morgan = require('morgan');
-const http = require('http');
-const https = require('https');
 const { connectToDatabase } = require('./database');
 const { configureEmail } = require('./services/emailService');
 
@@ -36,20 +32,11 @@ app.use(express.urlencoded({ extended: true }));
 // Serve arquivos estáticos
 app.use('/uploads', express.static(uploadsDir));
 
-// Rota de verificação de saúde
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'UP',
-    environment: config.env,
-    timestamp: new Date().toISOString()
-  });
-});
-
 // Rotas da API
 app.use('/api', routes);
 
 // Tratamento de erro global
-app.use((err, req, res, next) => {
+app.use((err, res) => {
   logger.error('Erro não tratado:', err);
   
   // Retorna um erro mais detalhado em desenvolvimento
@@ -66,22 +53,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Inicia o servidor HTTP ou HTTPS
-let server;
-if (config.ssl) {
-  server = https.createServer(config.ssl, app);
-  logger.info('Servidor HTTPS iniciado');
-} else {
-  server = http.createServer(app);
-  logger.info('Servidor HTTP iniciado (sem SSL)');
-}
-
 // Conecta ao banco de dados e inicia o servidor
 connectToDatabase()
   .then(() => {
-    server.listen(config.port, () => {
+    app.listen(config.port, () => {
       logger.info(`Servidor rodando na porta ${config.port}`);
-      logger.info(`API URL: http${config.ssl ? 's' : ''}://localhost:${config.port}/api`);
       configureEmail();
     });
   })
