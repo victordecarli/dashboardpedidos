@@ -144,11 +144,6 @@ export const BackgroundLoginSVG = (props) => (
         <feComposite in="SourceGraphic" in2="blur" operator="over" />
       </filter>
 
-      {/* Definindo o padrão de grid para as linhas */}
-      <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#6366f1" strokeWidth="0.8" strokeOpacity="0.4" />
-      </pattern>
-
       {/* Criando um símbolo de partícula para reutilizar */}
       <symbol id="particle" viewBox="0 0 10 10">
         <circle cx="5" cy="5" r="5" fill="#a5b4fc">
@@ -203,18 +198,6 @@ export const BackgroundLoginSVG = (props) => (
           strokeLinejoin="round"
         />
       </symbol>
-
-      {/* Ícone de pagamento */}
-      <symbol id="payment" viewBox="0 0 24 24">
-        <path
-          d="M2,7 L22,7 L22,18 L2,18 L2,7 Z M2,10 L22,10 M6,14 L8,14"
-          fill="none"
-          stroke="#a5b4fc"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </symbol>
     </defs>
 
     {/* Fundo com gradiente */}
@@ -231,55 +214,6 @@ export const BackgroundLoginSVG = (props) => (
       <circle cx={191} cy={612} fill="#818cf8" r={232} opacity="0.4" className="float-slow" />
       <circle cx={777} cy={324} fill="#6a58f7" r={282} opacity="0.4" className="pulse" />
       <circle cx={617} cy={710} fill="#4f39f6" r={232} opacity="0.4" className="pulse" />
-    </g>
-
-    {/* Linhas 3D animadas */}
-    <g>
-      <path
-        className="line line1"
-        d="M100,300 Q400,150 900,400"
-        fill="none"
-        stroke="#818cf8"
-        strokeWidth="2.5"
-        strokeOpacity="0.8"
-        strokeLinecap="round"
-      />
-      <path
-        className="line line2"
-        d="M100,500 Q500,300 900,600"
-        fill="none"
-        stroke="#818cf8"
-        strokeWidth="2.5"
-        strokeOpacity="0.8"
-        strokeLinecap="round"
-      />
-      <path
-        className="line line3"
-        d="M300,100 Q500,400 300,800"
-        fill="none"
-        stroke="#818cf8"
-        strokeWidth="2.5"
-        strokeOpacity="0.8"
-        strokeLinecap="round"
-      />
-      <path
-        className="line line4"
-        d="M700,100 Q500,500 700,800"
-        fill="none"
-        stroke="#a5b4fc"
-        strokeWidth="2.5"
-        strokeOpacity="0.8"
-        strokeLinecap="round"
-      />
-      <path
-        className="line line5"
-        d="M100,700 Q400,600 900,200"
-        fill="none"
-        stroke="#a5b4fc"
-        strokeWidth="2.5"
-        strokeOpacity="0.8"
-        strokeLinecap="round"
-      />
     </g>
 
     {/* Partículas flutuantes */}
