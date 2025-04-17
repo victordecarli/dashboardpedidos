@@ -1,7 +1,6 @@
 // src/config.js
 const dotenv = require('dotenv');
 const path = require('path');
-const fs = require('fs');
 
 // Carrega o arquivo .env
 dotenv.config();
@@ -10,23 +9,6 @@ dotenv.config();
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const isProduction = NODE_ENV === 'production';
 
-// Verifica se existem certificados SSL
-let sslOptions = null;
-try {
-  if (process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH) {
-    sslOptions = {
-      key: fs.readFileSync(process.env.SSL_KEY_PATH),
-      cert: fs.readFileSync(process.env.SSL_CERT_PATH)
-    };
-    // Adiciona CA certificate se estiver configurado
-    if (process.env.SSL_CA_PATH) {
-      sslOptions.ca = fs.readFileSync(process.env.SSL_CA_PATH);
-    }
-  }
-} catch (error) {
-  console.error('Erro ao carregar certificados SSL:', error.message);
-  sslOptions = null;
-}
 
 // Configuração do servidor
 const config = {
@@ -37,7 +19,6 @@ const config = {
   
   // Servidor
   port: parseInt(process.env.PORT || '3031', 10),
-  ssl: sslOptions,
   
   // Banco de dados
   db: {
@@ -68,7 +49,7 @@ const config = {
   upload: {
     directory: path.join(__dirname, '../uploads'),
     maxSize: 10 * 1024 * 1024, // 10MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
   },
   
   // Email
