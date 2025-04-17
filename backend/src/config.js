@@ -57,7 +57,7 @@ const config = {
   // CORS
   cors: {
     origin: isProduction 
-      ? [process.env.FRONTEND_URL || 'https://dashboardpedidos.vercel.app'] 
+      ? [process.env.VITE_SERVER_URL || 'https://dashboardpedidos-production-cedf.up.railway.app/api'] 
       : ['http://localhost:3031', 'http://localhost:5173', 'http://localhost:5174'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
@@ -80,7 +80,7 @@ const config = {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
     },
-    defaultFrom: process.env.EMAIL_FROM || 'Dashboard de Pedidos <no-reply@exemplo.com>'
+    defaultFrom: process.env.EMAIL_FROM || 'Dashboard de Pedidos <no-reply@odevvictor@gmail.com>'
   }
 };
 
