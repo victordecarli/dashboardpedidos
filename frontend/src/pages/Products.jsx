@@ -50,6 +50,7 @@ export default function Products() {
   const [priceSort, setPriceSort] = useState(null);
   const [pedidoFinalizando, setPedidoFinalizando] = useState(false);
   const [pedidoSucesso, setPedidoSucesso] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const navigate = useNavigate();
   const isAdmin = getUserRole()?.toLowerCase() === 'admin';
@@ -276,6 +277,25 @@ export default function Products() {
       opacity: 1,
     },
   };
+
+  // Function to handle scroll to top
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Effect to toggle the visibility of the scroll-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
@@ -951,6 +971,15 @@ export default function Products() {
               </motion.div>
             </button>
           </motion.div>
+        )}
+
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-10 right-10 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200"
+          >
+            ↑ Top
+          </button>
         )}
       </main>
 
