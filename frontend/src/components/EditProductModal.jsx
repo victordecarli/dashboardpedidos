@@ -142,7 +142,11 @@ export default function EditProductModal({ open, onClose, onSave, product }) {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className="inline-block w-full max-w-3xl p-0 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl">
+            <DialogPanel
+              className={`inline-block w-full max-w-3xl p-0 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl ${
+                open ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
+            >
               <div className="flex flex-col md:flex-row">
                 {/* Formulário */}
                 <div className="flex-1 p-8">

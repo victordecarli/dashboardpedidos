@@ -102,11 +102,10 @@ const sendPasswordResetEmail = async (email, token) => {
       Se você não solicitou a redefinição de senha, por favor ignore este email.
     `,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
+      <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
         <h2 style="color: #4A5568; text-align: center;">Redefinição de Senha</h2>
-        <p>Você solicitou a redefinição de senha para sua conta no Dashboard de Pedidos.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background-color: #4299E1; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
             Redefinir Minha Senha
           </a>
         </div>

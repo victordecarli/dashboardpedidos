@@ -285,28 +285,6 @@ export default function Register() {
 
       <div className="hidden lg:block relative flex-1 overflow-hidden">
         <BackgroundLoginSVG className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/20 to-indigo-700/40 backdrop-blur-sm flex items-center">
-          <div className="px-12 max-w-md">
-            <Motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
-              <h2 className="text-4xl font-bold text-white mb-4">Junte-se a nós</h2>
-              <p className="text-lg text-indigo-100 mb-8">
-                Crie sua conta e aproveite nossos produtos e serviços de forma rápida e fácil.
-              </p>
-              <div className="flex space-x-3">
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <p className="text-white font-medium">Produtos exclusivos</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <p className="text-white font-medium">Fácil de usar</p>
-                </div>
-              </div>
-            </Motion.div>
-          </div>
-        </div>
       </div>
     </div>
   );
