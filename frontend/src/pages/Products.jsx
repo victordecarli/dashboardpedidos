@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getProducts as fetchAllProducts, updateProduct } from '../services/productService';
+import { updateProduct } from '../services/productService';
 import { createOrder } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,6 @@ import MainNavbar from '../components/MainNavbar';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { getUserRole } from '../utils/auth';
 import EditProductModal from '../components/EditProductModal';
-import { Switch } from '@headlessui/react';
 import toast, { Toaster } from 'react-hot-toast';
 import { NoImageIcon, UploadImageIcon, ImageErrorIcon } from '../components/icons/NoImageIcon';
 import {
@@ -31,11 +30,43 @@ import {
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { getImageUrl } from '../services/api';
 
+// zustand
+import useProductStore from '../stores/useProductStore';
+import useCartStore from '../stores/useCartStore';
+import { useShallow } from 'zustand/react/shallow';
+
 export default function Products() {
-  const [products, setProducts] = useState([]);
-  const [carrinho, setCarrinho] = useState([]);
+  const {
+    products,
+    isLoading: isLoadingProduct,
+    fetchProducts,
+    updateProductInList,
+    error,
+  } = useProductStore(
+    useShallow((state) => ({
+      products: state.products,
+      isLoading: state.isLoading,
+      fetchProducts: state.fetchProducts,
+      updateProductInList: state.updateProductInList,
+      error: state.error,
+    })),
+  );
+
+  const { carrinho, addToCart, removeFromCart, removeCartItem, clearCart, getTotalCarrinho, getTotalItens } =
+    useCartStore(
+      useShallow((state) => ({
+        carrinho: state.carrinho,
+        addToCart: state.addToCart,
+        removeFromCart: state.removeFromCart,
+        removeCartItem: state.removeCartItem,
+        clearCart: state.clearCart,
+        getTotalCarrinho: state.getTotalCarrinho,
+        getTotalItens: state.getTotalItens,
+      })),
+    );
+
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState();
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,7 +76,6 @@ export default function Products() {
   const [maxPrice, setMaxPrice] = useState('');
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [priceSort, setPriceSort] = useState(null);
   const [pedidoFinalizando, setPedidoFinalizando] = useState(false);
   const [pedidoSucesso, setPedidoSucesso] = useState(false);
@@ -54,57 +84,27 @@ export default function Products() {
   const navigate = useNavigate();
   const isAdmin = getUserRole()?.toLowerCase() === 'admin';
 
-  const fetchProducts = useCallback(() => {
-    setIsLoading(true);
-    const url = isAdmin ? '/products?all=true' : '/products';
-    fetchAllProducts(url)
-      .then((res) => {
-        setProducts(res.data);
-        setIsLoading(false);
-      })
-      .catch(() => {
-        toast.error('Erro ao carregar produtos');
-        setIsLoading(false);
-      });
-  }, [isAdmin]);
-
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    if (products.length === 0 && !isLoadingProduct) {
+      fetchProducts();
+    }
+  }, [products.length, isLoadingProduct, fetchProducts]);
 
   const adicionarAoCarrinho = (produto) => {
-    const existe = carrinho.find((item) => item._id === produto._id);
-    const quantidadeAtual = existe ? existe.quantity : 0;
+    addToCart(produto);
 
-    if (quantidadeAtual >= produto.stock) {
-      toast.error(`Estoque máximo atingido para: ${produto.name}`);
-      return;
-    }
-
-    const novoCarrinho = existe
-      ? carrinho.map((item) => (item._id === produto._id ? { ...item, quantity: item.quantity + 1 } : item))
-      : [...carrinho, { ...produto, quantity: 1 }];
-
-    const novaQuantidadeTotal = quantidadeAtual + 1;
-    const novoEstoqueRestante = produto.stock - novaQuantidadeTotal;
-
-    setCarrinho(novoCarrinho);
-    setCarrinhoAberto(true);
-    toast.success(`Adicionado ao carrinho: ${produto.name}`);
-
-    if (novoEstoqueRestante === 0) {
-      updateProduct(produto._id, { active: false }).then(() => {
-        fetchProducts();
-      });
+    if (!carrinhoAberto) {
+      setCarrinhoAberto(true);
     }
   };
 
   const salvarEdicaoProduto = async (dadosAtualizados) => {
+    if (!editProduct) return;
     try {
-      await updateProduct(editProduct._id, dadosAtualizados);
+      const response = await updateProduct(editProduct._id, dadosAtualizados);
+      updateProductInList(response.data.product);
       setEditModalOpen(false);
       setEditProduct(null);
-      await fetchProducts();
       toast.success('Produto atualizado com sucesso!');
     } catch (err) {
       console.error(err);
@@ -112,75 +112,30 @@ export default function Products() {
     }
   };
 
-  const removerDoCarrinho = (produtoId) => {
-    const produtoNoCarrinho = carrinho.find((item) => item._id === produtoId);
-    if (!produtoNoCarrinho) return;
-
-    const novaQuantidade = produtoNoCarrinho.quantity - 1;
-    const novoCarrinho = carrinho
-      .map((item) => (item._id === produtoId ? { ...item, quantity: novaQuantidade } : item))
-      .filter((item) => item.quantity > 0);
-
-    const novoEstoque = produtoNoCarrinho.stock - novaQuantidade;
-
-    setCarrinho(novoCarrinho);
+  const handleRemoverDoCarrinho = (produtoId) => {
+    removeFromCart(produtoId);
     toast('Produto removido do carrinho', { icon: '🗑' });
-
-    if (novoEstoque >= 1 && produtoNoCarrinho.status === 'inativo') {
-      updateProduct(produtoId, { status: 'ativo' }).then(() => {
-        fetchProducts();
-      });
-    }
   };
 
-  const removerItemCompleto = (produtoId) => {
-    const novoCarrinho = carrinho.filter((item) => item._id !== produtoId);
-    setCarrinho(novoCarrinho);
-    toast('Item removido do carrinho', { icon: '🗑' });
+  const handleRemoverItemCompleto = (produtoId) => {
+    removeCartItem(produtoId);
   };
 
   const finalizarPedido = async () => {
     setPedidoFinalizando(true);
 
     const payload = {
-      products: carrinho.map((item) => ({ product: item._id, quantity: item.quantity })),
-      total: carrinho.reduce((acc, item) => acc + item.price * item.quantity, 0),
+      products: getTotalItens(),
+      total: getTotalCarrinho(),
     };
 
     try {
       await createOrder(payload);
-
-      // Mostrar animação de sucesso
       setPedidoSucesso(true);
+      toast.success('Pedido realizado com sucesso!');
 
-      // Toast mais detalhado
-      toast.success(
-        () => (
-          <div className="flex items-start">
-            <div>
-              <p className="font-medium">Pedido realizado com sucesso!</p>
-              <p className="text-sm mt-1">
-                {totalItens} {totalItens === 1 ? 'item' : 'itens'} - {currencyFormat(totalCarrinho)}
-              </p>
-            </div>
-          </div>
-        ),
-        {
-          duration: 5000,
-          style: {
-            borderRadius: '10px',
-            background: '#fff',
-            color: '#333',
-            border: '1px solid #E2E8F0',
-            padding: '16px',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-          },
-        },
-      );
-
-      // Aguardar a animação ser exibida antes de redirecionar
       setTimeout(() => {
-        setCarrinho([]);
+        clearCart();
         setCarrinhoAberto(false);
         setPedidoSucesso(false);
         setPedidoFinalizando(false);
@@ -188,33 +143,16 @@ export default function Products() {
       }, 2000);
     } catch (err) {
       console.error('Erro ao enviar pedido:', err);
-      toast.error(
-        <div className="flex items-start">
-          <ExclamationCircleIcon className="w-6 h-6 text-red-500 mr-2 flex-shrink-0" />
-          <div>
-            <p className="font-medium">Erro ao finalizar o pedido</p>
-            <p className="text-sm mt-1">Por favor, tente novamente</p>
-          </div>
-        </div>,
-        {
-          duration: 4000,
-          style: {
-            borderRadius: '10px',
-            background: '#fff',
-            color: '#333',
-            border: '1px solid #E2E8F0',
-            padding: '16px',
-          },
-        },
-      );
+      toast.error('Erro ao finalizar o pedido');
       setPedidoFinalizando(false);
     }
   };
 
   const desativarProduto = async (produtoId) => {
     try {
-      await updateProduct(produtoId, { status: 'inativo' });
-      fetchProducts();
+      const response = await updateProduct(produtoId, { status: 'inativo' });
+      updateProductInList(response.data.product);
+      setSelectedProduct(null);
       toast.success('Produto desativado!');
     } catch (err) {
       console.error('Erro ao desativar produto:', err);
@@ -224,8 +162,9 @@ export default function Products() {
 
   const ativarProduto = async (produtoId) => {
     try {
-      await updateProduct(produtoId, { status: 'ativo' });
-      fetchProducts();
+      const response = await updateProduct(produtoId, { status: 'ativo' });
+      updateProductInList(response.data.product);
+      setSelectedProduct(null);
       toast.success('Produto ativado!');
     } catch (err) {
       console.error('Erro ao ativar produto:', err);
@@ -255,8 +194,8 @@ export default function Products() {
   });
 
   // Cálculo do total do carrinho
-  const totalCarrinho = carrinho.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const totalItens = carrinho.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCarrinho = getTotalCarrinho();
+  const totalItens = getTotalItens();
 
   // Animações para cards
   const containerVariants = {
@@ -278,23 +217,17 @@ export default function Products() {
   };
 
   // Function to handle scroll to top
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Effect to toggle the visibility of the scroll-to-top button
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
+      setShowScrollTop(window.scrollY > 300);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
@@ -471,7 +404,15 @@ export default function Products() {
           </AnimatePresence>
         </div>
 
-        {isLoading ? (
+        {error && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+            <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900">Erro ao carregar produtos</h3>
+            <p className="mt-2 text-sm text-gray-500">Tente recarregar a página.</p>
+          </div>
+        )}
+
+        {isLoadingProduct ? (
           viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
@@ -832,7 +773,7 @@ export default function Products() {
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 border border-gray-100">
                               <button
-                                onClick={() => removerDoCarrinho(item._id)}
+                                onClick={() => handleRemoverDoCarrinho(item._id)}
                                 disabled={item.quantity <= 1}
                                 className="p-1.5 rounded-md hover:bg-gray-200 disabled:opacity-40 transition-all duration-200"
                               >
@@ -848,7 +789,7 @@ export default function Products() {
                               </button>
                             </div>
                             <button
-                              onClick={() => removerItemCompleto(item._id)}
+                              onClick={() => handleRemoverItemCompleto(item._id)}
                               className="text-red-500 p-1.5 hover:bg-red-50 rounded-lg transition-all duration-200"
                               title="Remover item"
                             >
@@ -945,7 +886,7 @@ export default function Products() {
             className="fixed bottom-6 right-6 z-40"
           >
             <button
-              onClick={() => setCarrinhoAberto(true)}
+              onClick={() => setCarrinhoAberto(!carrinhoAberto)}
               className="bg-blue-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center relative group hover:bg-blue-700 transition-all duration-200"
             >
               <ShoppingCartIcon className="w-6 h-6" />
