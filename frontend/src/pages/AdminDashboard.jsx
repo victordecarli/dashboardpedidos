@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { getAllOrders } from '../services/orderService';
-import { getProducts } from '../services/productService';
 import { getAllUsers } from '../services/userService';
 import { currencyFormat } from '../utils/currencyFormat';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import MainNavbar from '../components/MainNavbar';
 import toast from 'react-hot-toast';
-import { getImageUrl } from '../services/api';
 import {
   ShoppingBag,
   Package,
@@ -21,16 +19,38 @@ import {
   DollarSign,
   Users,
   BarChart3,
+  Flame,
+  PowerCircle,
+  CircleDivideIcon,
+  CircleDollarSign,
 } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { NoImageIcon, ImageErrorIcon } from '../components/icons/NoImageIcon';
 
+// zustand
+import useProductStore from '../stores/useProductStore';
+import { useShallow } from 'zustand/react/shallow';
+
 export default function AdminDashboard() {
+  const {
+    products,
+    isLoading: isLoadingProduct,
+    fetchProducts,
+    calculateMostSoldProducts,
+    mostSoldProducts,
+  } = useProductStore(
+    useShallow((state) => ({
+      products: state.products,
+      isLoading: state.isLoading,
+      fetchProducts: state.fetchProducts,
+      calculateMostSoldProducts: state.calculateMostSoldProducts,
+      mostSoldProducts: state.mostSoldProducts,
+    })),
+  );
+
   const [recentOrders, setRecentOrders] = useState([]);
-  const [popularProducts, setPopularProducts] = useState([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedUser, setSelectedUser] = useState('todos');
   const [users, setUsers] = useState([]);
@@ -47,11 +67,15 @@ export default function AdminDashboard() {
       averageOrderValue: 0,
     },
   });
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (products.length === 0 && !isLoadingProduct) {
+      fetchProducts();
+    }
+  }, [products.length, isLoadingProduct, fetchProducts]);
 
   useEffect(() => {
     fetchOrders();
-    fetchProducts();
     fetchUsers();
   }, [selectedMonth, selectedYear, selectedUser]);
 
@@ -76,7 +100,7 @@ export default function AdminDashboard() {
       } else {
         toast.error('Não foi possível carregar a lista de usuários');
       }
-    } catch (error) {
+    } catch {
       toast.error('Não foi possível carregar a lista de usuários');
     }
   };
@@ -111,6 +135,9 @@ export default function AdminDashboard() {
       });
 
       setRecentOrders(filteredOrders.slice(0, 5));
+
+      // Calcula os produtos mais vendidos usando o store
+      calculateMostSoldProducts(filteredOrders);
 
       // Calcular estatísticas gerais
       const total = filteredOrders.length;
@@ -166,30 +193,10 @@ export default function AdminDashboard() {
         averageOrderValue: avgOrderValue,
         selectedUserStats: userStats,
       });
-    } catch (error) {
+    } catch {
       toast.error('Não foi possível carregar os pedidos');
     } finally {
       setIsLoadingOrders(false);
-    }
-  };
-
-  const fetchProducts = async () => {
-    setIsLoadingProducts(true);
-    try {
-      const response = await getProducts();
-      const products = response?.data || [];
-      // Filtrando apenas produtos ativos e ordenando por popularidade (simulada)
-      const activeProducts = products
-        .filter((product) => product.status === 'ativo')
-        .sort((a, b) => b.stock - a.stock)
-        .slice(0, 4); // Mostrar 4 produtos populares
-
-      setPopularProducts(activeProducts);
-    } catch (error) {
-      console.error('Erro ao buscar produtos:', error);
-      toast.error('Não foi possível carregar os produtos populares');
-    } finally {
-      setIsLoadingProducts(false);
     }
   };
 
@@ -290,7 +297,7 @@ export default function AdminDashboard() {
           >
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
+                <h1 className="text-3xl font-bold text-gray-900 bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600">
                   Dashboard Administrativo
                 </h1>
                 <p className="text-gray-600 mt-2">Visão geral das vendas, pedidos e métricas importantes</p>
@@ -519,87 +526,57 @@ export default function AdminDashboard() {
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="text-indigo-600 w-5 h-5" />
-                    <h2 className="text-lg font-semibold text-gray-900">Produtos Populares</h2>
+                    <Flame className="text-indigo-600 w-5 h-5" />
+                    <h2 className="text-lg font-semibold text-gray-900">Produtos mais vendidos</h2>
                   </div>
-                  <Link
-                    to="/products"
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
-                  >
-                    Ver todos
-                    <ArrowUpRight size={14} />
-                  </Link>
                 </div>
 
                 <div className="divide-y divide-gray-200">
-                  {isLoadingProducts ? (
+                  {isLoadingProduct ? (
                     <div className="p-6 text-center">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
                       <p className="text-gray-500">Carregando produtos...</p>
                     </div>
-                  ) : popularProducts.length === 0 ? (
+                  ) : products.length === 0 ? (
                     <div className="p-8 text-center">
                       <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                       <p className="text-gray-500">Nenhum produto disponível no momento.</p>
                     </div>
                   ) : (
-                    <div>
-                      {popularProducts.map((product, index) => (
-                        <Motion.div
-                          key={product._id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 + index * 0.1 }}
-                          whileHover={{ backgroundColor: 'rgba(249, 250, 251, 1)' }}
-                          className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => navigate('/products')}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center p-1">
-                              {product.image ? (
-                                <img
-                                  src={getImageUrl(product.image)}
-                                  alt={product.name}
-                                  className="w-12 h-12 object-contain"
-                                  onError={(e) => {
-                                    if (e.target.getAttribute('data-error-handled')) return;
-                                    e.target.setAttribute('data-error-handled', 'true');
-                                    e.target.style.display = 'none';
-                                    e.target.parentElement.innerHTML = `
-                                      <div class="w-full h-full flex items-center justify-center">
-                                        <div class="flex flex-col items-center justify-center">
-                                          <ImageErrorIcon />
-                                          <p class="mt-2 text-sm text-gray-500">Erro ao carregar imagem</p>
-                                        </div>
-                                      </div>
-                                    `;
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                                  <div className="flex flex-col items-center justify-center">
-                                    <NoImageIcon />
-                                    <p className="mt-2 text-sm text-gray-500">Sem imagem</p>
-                                  </div>
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                      <div className="space-y-4">
+                        {mostSoldProducts.length > 0 ? (
+                          mostSoldProducts.map((product) => (
+                            <div key={product._id} className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                  <NoImageIcon className="w-6 h-6" />
                                 </div>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium text-gray-900 mb-1 line-clamp-1">{product.name}</h3>
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-semibold text-indigo-700">
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
+                                <p className="text-sm text-gray-500">{product.quantitySold} unidades vendidas</p>
+                              </div>
+                              <div className="flex items-center gap-2 bg-green-50 p-1 rounded-lg">
+                                <h3 className="text-sm font-medium text-green-900 flex items-center gap-1">
                                   {currencyFormat(product.price)}
-                                </span>
-                                {product.stock > 0 && (
-                                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                    {product.stock} em estoque
-                                  </span>
-                                )}
+                                </h3>
                               </div>
                             </div>
-                          </div>
-                        </Motion.div>
-                      ))}
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">Nenhum produto vendido no período</p>
+                        )}
+                      </div>
+                      <div className="flex justify-end mt-6">
+                        <Link
+                          to="/products"
+                          className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+                        >
+                          Ver todos
+                          <ArrowUpRight size={14} />
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>

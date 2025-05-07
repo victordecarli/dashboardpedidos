@@ -37,6 +37,16 @@ export const updateProduct = async (id, productData) => {
   return api.patch(`/products/${id}`, productData, config);
 };
 
+// Visualizar produto (visível para todos)
+export const viewProduct = async (id) => {
+  return api.get(`/products/${id}`);
+};
+
+// Produtos mais vendidos
+export const getMostSoldProducts = async () => {
+  return api.get('/products/most-sold');
+};
+
 // Deletar produto (admin)
 export const deleteProduct = (id) => {
   return api.delete(`/products/${id}`);

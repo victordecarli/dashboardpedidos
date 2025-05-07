@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import { updateProduct } from '../services/productService';
+import { useEffect, useState } from 'react';
+
 import { createOrder } from '../services/orderService';
 import { currencyFormat } from '../utils/currencyFormat';
 import { useNavigate } from 'react-router-dom';
@@ -34,6 +34,7 @@ import { getImageUrl } from '../services/api';
 import useProductStore from '../stores/useProductStore';
 import useCartStore from '../stores/useCartStore';
 import { useShallow } from 'zustand/react/shallow';
+import { updateProduct, viewProduct } from '../services/productService';
 
 export default function Products() {
   const {
@@ -80,6 +81,7 @@ export default function Products() {
   const [pedidoFinalizando, setPedidoFinalizando] = useState(false);
   const [pedidoSucesso, setPedidoSucesso] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [viewProductModal, setViewProductModal] = useState(false);
 
   const navigate = useNavigate();
   const isAdmin = getUserRole()?.toLowerCase() === 'admin';
@@ -170,6 +172,22 @@ export default function Products() {
       console.error('Erro ao ativar produto:', err);
       toast.error('Não foi possível ativar o produto.');
     }
+  };
+
+  const handleViewProduct = async (productId) => {
+    try {
+      const { data: product } = await viewProduct(productId);
+      setSelectedProduct(product);
+      setViewProductModal(true);
+    } catch (error) {
+      console.error('Erro ao visualizar produto:', error);
+      toast.error('Não foi possível carregar os detalhes do produto');
+    }
+  };
+
+  const handleCloseViewProduct = () => {
+    setViewProductModal(false);
+    setSelectedProduct(null);
   };
 
   // Filtro de produtos
@@ -537,7 +555,12 @@ export default function Products() {
                     )}
                   </div>
                   <div className="p-5">
-                    <h2 className="text-lg font-semibold text-gray-900 line-clamp-1 mb-1">{product.name}</h2>
+                    <h2
+                      className="text-lg font-semibold text-gray-900 line-clamp-1 mb-1 cursor-pointer hover:text-indigo-600 transition-colors"
+                      onClick={() => handleViewProduct(product._id)}
+                    >
+                      {product.name}
+                    </h2>
                     <p className="text-xl font-bold text-indigo-600 mb-2">{currencyFormat(product.price)}</p>
 
                     {product.description && (
@@ -938,6 +961,121 @@ export default function Products() {
         onSave={salvarEdicaoProduto}
         product={editProduct}
       />
+
+      {/* Modal de Visualização do Produto */}
+      <AnimatePresence>
+        {viewProductModal && selectedProduct && (
+          <Motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 overflow-y-auto"
+          >
+            {/* Overlay com backdrop blur */}
+            <Motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={handleCloseViewProduct}
+            />
+
+            <div className="flex min-h-screen items-center justify-center p-4">
+              <Motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full overflow-hidden"
+                onClick={(e) => e.stopPropagation()} // Previne que o clique no modal feche o modal
+              >
+                <div className="absolute top-4 right-4">
+                  <button
+                    onClick={handleCloseViewProduct}
+                    className="text-gray-400 hover:text-gray-600 p-1.5 hover:bg-gray-100 rounded-full transition-all duration-200"
+                  >
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="p-6">
+                  <div className="aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden mb-4">
+                    {selectedProduct.image ? (
+                      <img
+                        src={getImageUrl(selectedProduct.image)}
+                        alt={selectedProduct.name}
+                        className="w-full h-full object-contain p-4"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = `
+                            <div class="w-full h-full flex items-center justify-center">
+                              <div class="flex flex-col items-center justify-center">
+                                <ImageErrorIcon />
+                                <p class="mt-2 text-sm text-gray-500">Erro ao carregar imagem</p>
+                              </div>
+                            </div>
+                          `;
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="flex flex-col items-center justify-center">
+                          <NoImageIcon />
+                          <p className="mt-2 text-sm text-gray-500">Sem imagem</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedProduct.name}</h2>
+                  <p className="text-3xl font-bold text-indigo-600 mb-4">{currencyFormat(selectedProduct.price)}</p>
+
+                  {selectedProduct.description && <p className="text-gray-600 mb-4">{selectedProduct.description}</p>}
+
+                  <div className="flex items-center gap-4 mb-6">
+                    <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                      <ArchiveBoxIcon className="w-4 h-4 text-gray-400" />
+                      {selectedProduct.stock} {selectedProduct.stock === 1 ? 'unidade' : 'unidades'} em estoque
+                    </p>
+                    {selectedProduct.status === 'inativo' && (
+                      <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 bg-red-500 rounded-full"></span>
+                        Inativo
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3">
+                    {selectedProduct.status === 'ativo' && (
+                      <button
+                        onClick={() => {
+                          adicionarAoCarrinho(selectedProduct);
+                          handleCloseViewProduct();
+                        }}
+                        className="flex-1 bg-gradient-to-r from-indigo-600 to-blue-500 text-white px-4 py-3 rounded-lg hover:from-indigo-700 hover:to-blue-600 transition-all duration-200 shadow-sm text-sm font-medium flex items-center justify-center gap-1.5"
+                      >
+                        <ShoppingCartIcon className="w-5 h-5" />
+                        Adicionar ao Carrinho
+                      </button>
+                    )}
+                    {isAdmin && (
+                      <button
+                        onClick={() => {
+                          setEditProduct(selectedProduct);
+                          setEditModalOpen(true);
+                          handleCloseViewProduct();
+                        }}
+                        className="flex-1 bg-amber-500 text-white px-4 py-3 rounded-lg hover:bg-amber-600 transition-all duration-200 text-sm font-medium"
+                      >
+                        Editar Produto
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </Motion.div>
+            </div>
+          </Motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

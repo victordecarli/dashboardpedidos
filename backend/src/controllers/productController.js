@@ -1,5 +1,6 @@
 // controllers/productController.js
 const Product = require('../models/Product');
+const Order = require('../models/Order');
 
 // Função auxiliar para tratar erros do Mongoose
 function handleMongooseError(err, res) {
@@ -96,6 +97,43 @@ exports.getProducts = async (req, res) => {
   }
 };
 
+// 📌 Produtos mais vendidos
+exports.getMostSoldProducts = async (req, res) => {
+  try {
+    const orders = await Order.find({ status: 'finalizado' });
+    const productSales = {};
+
+    orders.forEach((order) => {
+      order.products.forEach((product) => {
+        const productId = product._id.toString();
+        if (!productSales[productId]) {
+          productSales[productId] = 0;
+        }
+        productSales[productId] += product.quantity;
+      });
+    });
+
+    const sortedProducts = Object.entries(productSales).sort(([, a], [, b]) => b - a);
+    const topProducts = sortedProducts.slice(0, 5).map(([id]) => id);
+
+    const products = await Product.find({ _id: { $in: topProducts } });
+    res.json(products);
+  } catch (err) {
+    handleMongooseError(err, res);
+  }
+};
+
+exports.viewProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ error: 'Produto não encontrado.' });
+    }
+    res.json(product);
+  } catch (err) {
+    handleMongooseError(err, res);
+  }
+};
 // 📌 Buscar produto por ID (READ)
 exports.getProductById = async (req, res) => {
   try {
