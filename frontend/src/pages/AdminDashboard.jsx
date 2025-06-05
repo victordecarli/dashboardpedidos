@@ -23,6 +23,7 @@ import {
   PowerCircle,
   CircleDivideIcon,
   CircleDollarSign,
+  Download,
 } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { NoImageIcon, ImageErrorIcon } from '../components/icons/NoImageIcon';
@@ -134,7 +135,7 @@ export default function AdminDashboard() {
         return dateMatches && userMatches;
       });
 
-      setRecentOrders(filteredOrders.slice(0, 5));
+      setRecentOrders(filteredOrders);
 
       // Calcula os produtos mais vendidos usando o store
       calculateMostSoldProducts(filteredOrders);
@@ -193,6 +194,12 @@ export default function AdminDashboard() {
         averageOrderValue: avgOrderValue,
         selectedUserStats: userStats,
       });
+
+      console.log('Produto exemplo:', filteredOrders[0].products[0]);
+      console.log(
+        'Produto exemplo:',
+        filteredOrders[0].products.map((p) => Object.keys(p)),
+      );
     } catch {
       toast.error('Não foi possível carregar os pedidos');
     } finally {
@@ -281,6 +288,89 @@ export default function AdminDashboard() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
+  };
+
+  const exportToCSV = async () => {
+    try {
+      // Buscar todos os pedidos novamente para garantir dados atualizados
+      const response = await getAllOrders();
+      const orders = response?.data?.data || [];
+
+      // Aplicar os mesmos filtros que são usados na visualização
+      const filteredOrders = orders.filter((order) => {
+        if (!order.data_pedido) return false;
+        const orderDate = parseDate(order.data_pedido);
+        if (!orderDate) return false;
+
+        // Converte IDs para string para garantir comparação correta
+        const orderUserId = order.user?.id_user?.toString();
+        const selectedUserId = selectedUser?.toString();
+
+        const dateMatches = orderDate.getMonth() === selectedMonth && orderDate.getFullYear() === selectedYear;
+        const userMatches = selectedUser === 'todos' || orderUserId === selectedUserId;
+
+        return dateMatches && userMatches;
+      });
+
+      // Prepare CSV data
+      const csvData = filteredOrders
+        .map((order) => {
+          const orderProducts = order.products || [];
+          orderProducts.forEach((item, idx) => {
+            console.log('Produto do pedido:', idx, item);
+          });
+          return orderProducts.map((item) => ({
+            'Nome do Cliente': order.user?.name || 'Cliente',
+            Produto: item.product_name || item.product?.name || item.name || 'Produto não especificado',
+            Quantidade: item.quantity || 1,
+            'Valor Unitário': currencyFormat(item.price || 0),
+            'Valor Total': currencyFormat((item.price || 0) * (item.quantity || 1)),
+            'Data do Pedido': formatDate(order.data_pedido),
+            Status: order.status,
+          }));
+        })
+        .flat();
+
+      // Convert to CSV string
+      const headers = [
+        'Nome do Cliente',
+        'Produto',
+        'Quantidade',
+        'Valor Unitário',
+        'Valor Total',
+        'Data do Pedido',
+        'Status',
+      ];
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map((row) => headers.map((header) => `"${row[header]}"`).join(',')),
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+
+      // Nome do arquivo inclui o mês, ano e usuário selecionado
+      const fileName =
+        selectedUser === 'todos'
+          ? `pedidos_${months[selectedMonth]}_${selectedYear}.csv`
+          : `pedidos_${months[selectedMonth]}_${selectedYear}_usuario_${selectedUser}.csv`;
+
+      link.setAttribute('download', fileName);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      console.log('Pedidos brutos:', orders);
+      console.log('Pedidos filtrados:', filteredOrders);
+      console.log('Exemplo de pedido filtrado:', filteredOrders[0]);
+    } catch (error) {
+      toast.error('Erro ao exportar CSV');
+      console.error('Export error:', error);
+    }
   };
 
   return (
@@ -451,15 +541,24 @@ export default function AdminDashboard() {
                 <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <ShoppingBag className="text-indigo-600 w-5 h-5" />
-                    <h2 className="text-lg font-semibold text-gray-900">Pedidos Recentes</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">Pedidos do Mês</h2>
                   </div>
-                  <Link
-                    to="/admin-orders"
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
-                  >
-                    Ver todos
-                    <ArrowUpRight size={14} />
-                  </Link>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={exportToCSV}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      <Download size={16} />
+                      Exportar CSV
+                    </button>
+                    <Link
+                      to="/admin-orders"
+                      className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+                    >
+                      Ver todos
+                      <ArrowUpRight size={14} />
+                    </Link>
+                  </div>
                 </div>
 
                 <div className="divide-y divide-gray-200">
@@ -507,6 +606,15 @@ export default function AdminDashboard() {
                               <Calendar size={14} />
                               {formatDate(order.data_pedido)}
                             </div>
+                          </div>
+                          {/* Adicionar detalhes dos produtos */}
+                          <div className="mt-3 pl-4 border-l-2 border-gray-100">
+                            {order.products?.map((item, itemIndex) => (
+                              <div key={itemIndex} className="text-sm text-gray-600">
+                                {item.quantity}x {item.product_name || item.product?.name || item.name} -{' '}
+                                {currencyFormat(item.price)}
+                              </div>
+                            ))}
                           </div>
                         </Motion.div>
                       ))}
