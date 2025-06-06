@@ -32,11 +32,53 @@ export default function ClientDashboard() {
     completedOrders: 0,
   });
   const navigate = useNavigate();
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const months = [
+    'Janeiro',
+    'Fevereiro',
+    'Março',
+    'Abril',
+    'Maio',
+    'Junho',
+    'Julho',
+    'Agosto',
+    'Setembro',
+    'Outubro',
+    'Novembro',
+    'Dezembro',
+  ];
+
+  // Novo estado para pedidos filtrados
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
 
   useEffect(() => {
     fetchOrders();
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    // Filtrar pedidos por mês/ano selecionado
+    const filtered = recentOrders.filter((order) => {
+      if (!order.data_pedido) return false;
+      const [day, month, year] = order.data_pedido.split(' ')[0].split('/');
+      return parseInt(month) - 1 === selectedMonth && parseInt(year) === selectedYear;
+    });
+    setFilteredOrders(filtered);
+    // Calcular receita total do período
+    const revenue = filtered.reduce((acc, order) => acc + (order.total || 0), 0);
+    setTotalRevenue(revenue);
+    // Atualizar estatísticas filtradas
+    const total = filtered.length;
+    const pending = filtered.filter((order) => order.status === 'processando').length;
+    const completed = filtered.filter((order) => order.status === 'finalizado').length;
+    setStatistics({
+      totalOrders: total,
+      pendingOrders: pending,
+      completedOrders: completed,
+    });
+  }, [recentOrders, selectedMonth, selectedYear]);
 
   const fetchOrders = async () => {
     setIsLoadingOrders(true);
@@ -170,28 +212,72 @@ export default function ClientDashboard() {
       <MainNavbar />
       <div className="bg-gradient-to-br from-indigo-50 to-slate-50 min-h-screen pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-          {/* Cabeçalho */}
+          {/* Cabeçalho e filtros de data */}
           <Motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="mb-10"
           >
-            <h1 className="text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
-              Bem-vindo(a) ao seu Painel
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Aqui você pode acompanhar seus pedidos recentes e encontrar produtos populares.
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
+                  Bem-vindo(a) ao seu Painel
+                </h1>
+                <p className="text-gray-600 mt-2">
+                  Aqui você pode acompanhar seus pedidos recentes e encontrar produtos populares.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+                >
+                  {months.map((month, index) => (
+                    <option key={index} value={index}>
+                      {month}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+                >
+                  {[...Array(5)].map((_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
           </Motion.div>
 
-          {/* Cards de estatísticas */}
+          {/* Cards de estatísticas + Receita Total */}
           <Motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
           >
+            <Motion.div variants={itemVariants}>
+              <div className="bg-white rounded-xl border border-green-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Receita Total</p>
+                    <h3 className="text-3xl font-bold text-gray-900 mt-1">{currencyFormat(totalRevenue)}</h3>
+                  </div>
+                  <div className="bg-green-600 bg-opacity-10 p-3 rounded-full">
+                    <CheckCircle className="text-green-100 w-6 h-6" />
+                  </div>
+                </div>
+              </div>
+            </Motion.div>
             <Motion.div variants={itemVariants}>
               <div className="bg-white rounded-xl border border-indigo-100 shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
@@ -205,7 +291,6 @@ export default function ClientDashboard() {
                 </div>
               </div>
             </Motion.div>
-
             <Motion.div variants={itemVariants}>
               <div className="bg-white rounded-xl border border-yellow-100 shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
@@ -219,7 +304,6 @@ export default function ClientDashboard() {
                 </div>
               </div>
             </Motion.div>
-
             <Motion.div variants={itemVariants}>
               <div className="bg-white rounded-xl border border-green-100 shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
@@ -235,8 +319,8 @@ export default function ClientDashboard() {
             </Motion.div>
           </Motion.div>
 
+          {/* Pedidos Recentes filtrados */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Pedidos Recentes */}
             <Motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -247,7 +331,7 @@ export default function ClientDashboard() {
                 <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <ShoppingBag className="text-indigo-600 w-5 h-5" />
-                    <h2 className="text-lg font-semibold text-gray-900">Pedidos Recentes</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">Pedidos do Mês</h2>
                   </div>
                   <Link
                     to="/orders"
@@ -257,19 +341,18 @@ export default function ClientDashboard() {
                     <ArrowUpRight size={14} />
                   </Link>
                 </div>
-
                 <div className="divide-y divide-gray-200">
                   {isLoadingOrders ? (
                     <div className="p-6 text-center">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
                       <p className="text-gray-500">Carregando seus pedidos...</p>
                     </div>
-                  ) : recentOrders.length === 0 ? (
+                  ) : filteredOrders.length === 0 ? (
                     <div className="p-10 text-center">
                       <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                       <h3 className="text-xl font-medium text-gray-900 mb-2">Nenhum pedido encontrado</h3>
                       <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                        Você ainda não realizou nenhum pedido. Comece explorando nossos produtos disponíveis.
+                        Você ainda não realizou nenhum pedido neste período.
                       </p>
                       <button
                         onClick={() => navigate('/products')}
@@ -281,7 +364,7 @@ export default function ClientDashboard() {
                     </div>
                   ) : (
                     <div>
-                      {recentOrders.map((order, index) => (
+                      {filteredOrders.map((order, index) => (
                         <Motion.div
                           key={order.id}
                           initial={{ opacity: 0, y: 10 }}
