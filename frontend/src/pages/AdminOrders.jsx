@@ -17,6 +17,15 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+function parseDateString(dateString) {
+  if (!dateString) return null;
+  // Extrai dia, mês, ano, hora e minuto
+  const [datePart, timePart] = dateString.split(' ');
+  const [day, month, year] = datePart.split('/');
+  const [hour = 0, minute = 0] = (timePart || '00:00').split(':');
+  return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+}
+
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
@@ -83,8 +92,8 @@ export default function AdminOrders() {
           break;
         case 'semana':
           result = result.filter((order) => {
-            const orderDate = new Date(order.data_pedido);
-            return orderDate >= sevenDaysAgo;
+            const orderDate = parseDateString(order.data_pedido);
+            return orderDate && orderDate >= sevenDaysAgo;
           });
           break;
         case 'mes':
