@@ -72,7 +72,7 @@ export default function Products() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ativo');
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState('grid');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
@@ -912,7 +912,7 @@ export default function Products() {
           <Motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="fixed bottom-6 right-6 z-40"
+            className="fixed bottom-6 left-6 z-40"
           >
             <button
               onClick={() => setCarrinhoAberto(!carrinhoAberto)}

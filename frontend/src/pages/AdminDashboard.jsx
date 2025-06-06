@@ -68,6 +68,7 @@ export default function AdminDashboard() {
       averageOrderValue: 0,
     },
   });
+  const [paymentFilter, setPaymentFilter] = useState('todos');
 
   useEffect(() => {
     if (products.length === 0 && !isLoadingProduct) {
@@ -78,7 +79,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchOrders();
     fetchUsers();
-  }, [selectedMonth, selectedYear, selectedUser]);
+  }, [selectedMonth, selectedYear, selectedUser, paymentFilter]);
 
   const parseDate = (dateString) => {
     if (!dateString) return null;
@@ -132,7 +133,12 @@ export default function AdminDashboard() {
         const dateMatches = orderDate.getMonth() === selectedMonth && orderDate.getFullYear() === selectedYear;
         const userMatches = selectedUser === 'todos' || orderUserId === selectedUserId;
 
-        return dateMatches && userMatches;
+        const paymentMatches =
+          paymentFilter === 'todos' ||
+          (paymentFilter === 'pago' && order.isPaid) ||
+          (paymentFilter === 'nao_pago' && !order.isPaid);
+
+        return dateMatches && userMatches && paymentMatches;
       });
 
       setRecentOrders(filteredOrders);
@@ -140,7 +146,7 @@ export default function AdminDashboard() {
       // Calcula os produtos mais vendidos usando o store
       calculateMostSoldProducts(filteredOrders);
 
-      // Calcular estatísticas gerais
+      // Calcular estatísticas com base nos pedidos filtrados
       const total = filteredOrders.length;
       const pending = filteredOrders.filter((order) => {
         const status = order.status?.toLowerCase();
@@ -164,7 +170,7 @@ export default function AdminDashboard() {
         return isNaN(value) ? 0 : value;
       };
 
-      // Calcula a receita total somando o valor total de cada pedido
+      // Receita total dos pedidos filtrados
       const revenue = filteredOrders.reduce((acc, order) => {
         const orderTotal = processTotal(order.total);
         return acc + orderTotal;
@@ -434,6 +440,16 @@ export default function AdminDashboard() {
                       </option>
                     );
                   })}
+                </select>
+
+                <select
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+                >
+                  <option value="todos">Status</option>
+                  <option value="pago">Pagos</option>
+                  <option value="nao_pago">Não Pagos</option>
                 </select>
               </div>
             </div>
