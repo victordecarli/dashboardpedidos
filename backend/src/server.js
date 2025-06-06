@@ -8,6 +8,7 @@ const config = require('./config');
 const morgan = require('morgan');
 const { connectToDatabase } = require('./database');
 const { configureEmail } = require('./services/emailService');
+const { startAutoFinalizeCheck } = require('./services/orderAutoFinalize');
 
 // Inicializa o app Express
 const app = express();
@@ -44,7 +45,7 @@ app.use('/api', routes);
 // Tratamento de erro global
 app.use((err, res) => {
   logger.error('Erro não tratado:', err);
-  
+
   // Retorna um erro mais detalhado em desenvolvimento
   if (config.isDevelopment) {
     return res.status(err.status || 500).json({
@@ -52,7 +53,7 @@ app.use((err, res) => {
       stack: err.stack,
     });
   }
-  
+
   // Retorna um erro genérico em produção
   return res.status(err.status || 500).json({
     message: 'Ocorreu um erro no servidor.',
@@ -65,6 +66,9 @@ connectToDatabase()
     app.listen(config.port, () => {
       logger.info(`Servidor rodando na porta ${config.port}`);
       configureEmail();
+      // Inicia o serviço de finalização automática de pedidos
+      startAutoFinalizeCheck();
+      logger.info('Serviço de finalização automática de pedidos iniciado');
     });
   })
   .catch((error) => {

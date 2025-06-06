@@ -126,8 +126,14 @@ export default function Products() {
   const finalizarPedido = async () => {
     setPedidoFinalizando(true);
 
+    // Map the cart items to the format expected by the backend
+    const productsForOrder = carrinho.map((item) => ({
+      product: item._id, // Assuming the backend expects the product ID as 'product'
+      quantity: item.quantity,
+    }));
+
     const payload = {
-      products: getTotalItens(),
+      products: productsForOrder,
       total: getTotalCarrinho(),
     };
 
