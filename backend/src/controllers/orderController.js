@@ -289,6 +289,7 @@ exports.getOrdersByUser = async (req, res) => {
       total: order.total || 0,
       status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
+      isPaid: order.isPaid,
     }));
 
     res.status(200).json({

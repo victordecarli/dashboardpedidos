@@ -383,6 +383,17 @@ export default function ClientDashboard() {
                                 {getStatusIcon(order.status)}
                                 {order.status}
                               </div>
+                              {/* Tag de pagamento */}
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
+                                  order.isPaid
+                                    ? 'bg-green-100 text-green-800 border-green-200'
+                                    : 'bg-red-100 text-red-800 border-red-200'
+                                }`}
+                              >
+                                {order.isPaid ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                                {order.isPaid ? 'Pago' : 'Não Pago'}
+                              </span>
                             </div>
                             <span className="text-sm font-semibold text-indigo-700">{currencyFormat(order.total)}</span>
                           </div>
