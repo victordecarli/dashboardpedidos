@@ -7,7 +7,9 @@ const moment = require('moment');
 function formatDate(date) {
   if (!date) return 'Data não disponível';
   const formattedDate = moment(date).format('DD/MM/YYYY HH:mm');
-  return formattedDate !== 'Invalid date' ? formattedDate : 'Data não disponível';
+  return formattedDate !== 'Invalid date'
+    ? formattedDate
+    : 'Data não disponível';
 }
 
 function handleMongooseError(err, res) {
@@ -64,21 +66,17 @@ exports.createOrder = async (req, res) => {
       const product = await Product.findById(item.product);
 
       if (!product) {
-        return res
-          .status(422)
-          .json({ 
-            success: false,
-            message: `Produto não encontrado: ${item.product}` 
-          });
+        return res.status(422).json({
+          success: false,
+          message: `Produto não encontrado: ${item.product}`,
+        });
       }
 
       if (product.status !== 'ativo') {
-        return res
-          .status(422)
-          .json({ 
-            success: false,
-            message: `Produto "${product.name}" está inativo.` 
-          });
+        return res.status(422).json({
+          success: false,
+          message: `Produto "${product.name}" está inativo.`,
+        });
       }
 
       if (product.stock < item.quantity) {
@@ -147,10 +145,10 @@ exports.getAllOrders = async (req, res) => {
     const formattedOrders = orders.map((order) => {
       // Verificar se o usuário existe
       if (!order.user) {
-        order.user = { 
-          _id: 'Usuário removido', 
-          name: 'Usuário removido', 
-          email: 'N/A' 
+        order.user = {
+          _id: 'Usuário removido',
+          name: 'Usuário removido',
+          email: 'N/A',
         };
       }
 
@@ -169,6 +167,7 @@ exports.getAllOrders = async (req, res) => {
         total: order.total || 0,
         status: order.status || 'processando',
         data_pedido: formatDate(order.createdAt),
+        isPaid: order.isPaid,
       };
     });
 
@@ -208,13 +207,13 @@ exports.getOrderById = async (req, res) => {
 
     // Verificar se o usuário existe
     if (!order.user) {
-      order.user = { 
-        _id: 'Usuário removido', 
-        name: 'Usuário removido', 
-        email: 'N/A' 
+      order.user = {
+        _id: 'Usuário removido',
+        name: 'Usuário removido',
+        email: 'N/A',
       };
     }
-    
+
     const formattedOrder = {
       id: order._id,
       user: {
@@ -230,8 +229,9 @@ exports.getOrderById = async (req, res) => {
       total: order.total || 0,
       status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
+      isPaid: order.isPaid,
     };
-    
+
     res.status(200).json({
       success: true,
       message: 'Pedido obtido com sucesso',
@@ -253,7 +253,7 @@ exports.getOrdersByUser = async (req, res) => {
         message: 'Usuário não autenticado.',
       });
     }
-    
+
     // Adicionando tratamento de erros para a consulta
     let orders;
     try {
@@ -313,7 +313,7 @@ exports.updateOrder = async (req, res) => {
       });
     }
 
-    const { products, total, status } = req.body;
+    const { products, total, status, isPaid } = req.body;
     const updateData = {};
 
     if (products) {
@@ -347,6 +347,11 @@ exports.updateOrder = async (req, res) => {
       updateData.status = status;
     }
 
+    // Atualizar status de pagamento (se enviado)
+    if (isPaid !== undefined) {
+      updateData.isPaid = isPaid;
+    }
+
     // Verificar se o pedido existe antes de tentar atualizar
     const orderExists = await Order.findById(req.params.id);
     if (!orderExists) {
@@ -373,10 +378,10 @@ exports.updateOrder = async (req, res) => {
 
     // Verificar se o usuário existe
     if (!order.user) {
-      order.user = { 
-        _id: 'Usuário removido', 
-        name: 'Usuário removido', 
-        email: 'N/A' 
+      order.user = {
+        _id: 'Usuário removido',
+        name: 'Usuário removido',
+        email: 'N/A',
       };
     }
 
@@ -395,6 +400,7 @@ exports.updateOrder = async (req, res) => {
       total: order.total || 0,
       status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
+      isPaid: order.isPaid,
     };
 
     res.status(200).json({
@@ -417,7 +423,7 @@ exports.deleteOrder = async (req, res) => {
         message: 'ID de pedido inválido',
       });
     }
-    
+
     const order = await Order.findByIdAndDelete(req.params.id);
     if (!order) {
       return res.status(404).json({

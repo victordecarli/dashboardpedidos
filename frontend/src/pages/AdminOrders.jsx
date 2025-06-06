@@ -228,6 +228,31 @@ export default function AdminOrders() {
     return orders.filter((order) => order.status === status).length;
   };
 
+  const handlePaymentStatusChange = async (orderId, newStatus) => {
+    if (!orderId || newStatus === undefined) return;
+
+    setActionLoading(orderId);
+
+    try {
+      await updateOrder(orderId, { isPaid: newStatus });
+
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => (order.id === orderId ? { ...order, isPaid: newStatus } : order)),
+      );
+
+      toast.success(
+        `Status de pagamento do pedido #${orderId.slice(-6)} ${
+          newStatus ? 'marcado como pago' : 'marcado como não pago'
+        }`,
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar status de pagamento:', error);
+      toast.error('Não foi possível atualizar o status de pagamento do pedido');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <>
@@ -461,7 +486,7 @@ export default function AdminOrders() {
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4"
                       >
                         Cliente
                       </th>
@@ -487,6 +512,12 @@ export default function AdminOrders() {
                         scope="col"
                         className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
+                        Pagamento
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
+                      >
                         Ações
                       </th>
                     </tr>
@@ -495,16 +526,18 @@ export default function AdminOrders() {
                     {filteredOrders.map((order) => (
                       <Fragment key={order.id}>
                         <tr className={`hover:bg-gray-50 ${expandedOrder === order.id ? 'bg-blue-50' : ''}`}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium text-gray-900">#{order.id.slice(-6)}</div>
-                            <div className="text-sm text-gray-500">{order.products?.length || 0} itens</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              <User size={14} className="text-gray-400" />
-                              <div className="text-sm text-gray-900">{order.user?.name || 'Cliente'}</div>
+                          <td className="px-6 py-4">
+                            <div className="font-medium text-gray-900 whitespace-nowrap">#{order.id.slice(-6)}</div>
+                            <div className="text-sm text-gray-500 whitespace-nowrap">
+                              {order.products?.length || 0} itens
                             </div>
-                            <div className="text-sm text-gray-500 ml-5">
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-1.5 whitespace-normal">
+                              <User size={14} className="text-gray-400" />
+                              <div className="text-sm text-gray-900 font-medium">{order.user?.name || 'Cliente'}</div>
+                            </div>
+                            <div className="text-sm text-gray-500 ml-5 whitespace-normal">
                               {order.user?.email || 'Email não disponível'}
                             </div>
                           </td>
@@ -524,8 +557,20 @@ export default function AdminOrders() {
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <div className="text-sm font-medium text-gray-900">{currencyFormat(order.total)}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
-                            <div className="flex items-center justify-center gap-2">
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${
+                                order.isPaid
+                                  ? 'bg-green-100 text-green-800 border-green-200'
+                                  : 'bg-red-100 text-red-800 border-red-200'
+                              }`}
+                            >
+                              {order.isPaid ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                              {order.isPaid ? 'Pago' : 'Não Pago'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-center text-sm w-40">
+                            <div className="flex items-center justify-center gap-2 flex-wrap">
                               {order.status !== 'processando' && (
                                 <button
                                   onClick={() => handleStatusChange(order.id, 'processando')}
@@ -557,6 +602,18 @@ export default function AdminOrders() {
                               )}
 
                               <button
+                                onClick={() => handlePaymentStatusChange(order.id, !order.isPaid)}
+                                disabled={actionLoading === order.id}
+                                className={`text-xs px-2 py-1 rounded border transition-colors ${
+                                  order.isPaid
+                                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
+                                    : 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200'
+                                }`}
+                              >
+                                {order.isPaid ? 'Não Pago' : 'Pago'}
+                              </button>
+
+                              <button
                                 onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                                 className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 px-2 py-1 rounded border border-gray-200 transition-colors ml-1"
                               >
@@ -568,14 +625,14 @@ export default function AdminOrders() {
 
                         {expandedOrder === order.id && (
                           <tr>
-                            <td colSpan="6" className="px-6 py-3 bg-gray-50 border-t border-gray-200">
+                            <td colSpan="7" className="px-6 py-3 bg-gray-50 border-t border-gray-200">
                               <div className="text-sm font-medium text-gray-900 mb-2">Detalhes do Pedido</div>
                               <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded">
                                 <thead className="bg-gray-100">
                                   <tr>
                                     <th
                                       scope="col"
-                                      className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                      className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
                                     >
                                       Produto
                                     </th>
@@ -602,7 +659,7 @@ export default function AdminOrders() {
                                 <tbody className="bg-white divide-y divide-gray-200">
                                   {order.products?.map((item, index) => (
                                     <tr key={index} className="hover:bg-gray-50">
-                                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-normal">
                                         {item.product_name}
                                       </td>
                                       <td className="px-4 py-2 whitespace-nowrap text-sm text-center">

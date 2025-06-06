@@ -97,25 +97,42 @@ export default function Orders() {
     if (!dateString) return 'Data não disponível';
 
     try {
-      const date = new Date(dateString);
+      // Attempt to parse DD/MM/YYYY HH:mm format explicitly
+      const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/);
 
+      if (parts) {
+        // parts[1] = day, parts[2] = month, parts[3] = year, parts[4] = hour, parts[5] = minute
+        // Note: Month is 0-indexed in JavaScript Date object
+        const year = parseInt(parts[3], 10);
+        const month = parseInt(parts[2], 10) - 1; // Subtract 1 for 0-indexed month
+        const day = parseInt(parts[1], 10);
+        const hours = parseInt(parts[4], 10);
+        const minutes = parseInt(parts[5], 10);
+
+        const date = new Date(year, month, day, hours, minutes);
+
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('pt-BR', {
+            // Formatting to DD/MM/YYYY
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          });
+        }
+      }
+
+      // Fallback for other potential date formats or if explicit parsing fails
+      const date = new Date(dateString);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString('pt-BR', {
+          // Formatting to DD/MM/YYYY
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
         });
       }
 
-      // Tenta extrair data usando regex se a string tiver formato ISO
-      if (typeof dateString === 'string') {
-        const dataParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
-        if (dataParts) {
-          const [_, ano, mes, dia] = dataParts;
-          return `${dia}/${mes}/${ano}`;
-        }
-      }
-
+      // Final fallback if all parsing fails
       return dateString;
     } catch {
       return dateString;
