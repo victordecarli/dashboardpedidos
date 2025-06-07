@@ -26,6 +26,26 @@ function parseDateString(dateString) {
   return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
 }
 
+// Função para formatar data e hora no padrão brasileiro
+function formatDateTimeBR(dateInput) {
+  if (!dateInput) return 'Data não disponível';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return 'Data inválida';
+
+  // Ajuste para o fuso horário de Brasília (UTC-3)
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+  // -3 horas em milissegundos
+  const brasiliaOffset = -3 * 60 * 60 * 1000;
+  const brasiliaDate = new Date(utc + brasiliaOffset);
+
+  const dia = String(brasiliaDate.getDate()).padStart(2, '0');
+  const mes = String(brasiliaDate.getMonth() + 1).padStart(2, '0');
+  const ano = brasiliaDate.getFullYear();
+  const hora = String(brasiliaDate.getHours()).padStart(2, '0');
+  const minuto = String(brasiliaDate.getMinutes()).padStart(2, '0');
+  return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+}
+
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
@@ -86,19 +106,23 @@ export default function AdminOrders() {
       switch (dateFilter) {
         case 'hoje':
           result = result.filter((order) => {
-            const orderDate = new Date(order.data_pedido);
-            return orderDate.toDateString() === today.toDateString();
+            const orderDate = new Date(order.createdAt);
+            return (
+              orderDate.getDate() === today.getDate() &&
+              orderDate.getMonth() === today.getMonth() &&
+              orderDate.getFullYear() === today.getFullYear()
+            );
           });
           break;
         case 'semana':
           result = result.filter((order) => {
-            const orderDate = parseDateString(order.data_pedido);
-            return orderDate && orderDate >= sevenDaysAgo;
+            const orderDate = new Date(order.createdAt);
+            return orderDate >= sevenDaysAgo;
           });
           break;
         case 'mes':
           result = result.filter((order) => {
-            const orderDate = new Date(order.data_pedido);
+            const orderDate = new Date(order.createdAt);
             return orderDate >= thirtyDaysAgo;
           });
           break;
@@ -121,8 +145,8 @@ export default function AdminOrders() {
 
     // Ordenação
     result.sort((a, b) => {
-      const dateA = new Date(a.data_pedido);
-      const dateB = new Date(b.data_pedido);
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
 
@@ -134,34 +158,6 @@ export default function AdminOrders() {
     setStatusFilter('todos');
     setDateFilter('todos');
     setSortOrder('desc');
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Data não disponível';
-
-    try {
-      const date = new Date(dateString);
-
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        });
-      }
-
-      if (typeof dateString === 'string') {
-        const dataParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
-        if (dataParts) {
-          const [_, ano, mes, dia] = dataParts;
-          return `${dia}/${mes}/${ano}`;
-        }
-      }
-
-      return dateString;
-    } catch {
-      return dateString;
-    }
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
@@ -551,7 +547,7 @@ export default function AdminOrders() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{formatDate(order.data_pedido)}</div>
+                            <div className="text-sm text-gray-900">{formatDateTimeBR(order.createdAt)}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div

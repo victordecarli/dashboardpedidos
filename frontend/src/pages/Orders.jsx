@@ -67,10 +67,10 @@ export default function Orders() {
       );
     }
 
-    // Ordenação por data
+    // Ordenação por data (usando createdAt ISO)
     result.sort((a, b) => {
-      const dateA = new Date(a.data_pedido);
-      const dateB = new Date(b.data_pedido);
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
 
@@ -92,52 +92,24 @@ export default function Orders() {
     setSelectedOrder(orderId);
   };
 
-  // Formata data de forma segura
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Data não disponível';
+  // Função para formatar data e hora no padrão brasileiro
+  function formatDateTimeBR(dateInput) {
+    if (!dateInput) return 'Data não disponível';
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    if (isNaN(date.getTime())) return 'Data inválida';
 
-    try {
-      // Attempt to parse DD/MM/YYYY HH:mm format explicitly
-      const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/);
+    // Ajuste para o fuso horário de Brasília (UTC-3)
+    const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+    const brasiliaOffset = -3 * 60 * 60 * 1000;
+    const brasiliaDate = new Date(utc + brasiliaOffset);
 
-      if (parts) {
-        // parts[1] = day, parts[2] = month, parts[3] = year, parts[4] = hour, parts[5] = minute
-        // Note: Month is 0-indexed in JavaScript Date object
-        const year = parseInt(parts[3], 10);
-        const month = parseInt(parts[2], 10) - 1; // Subtract 1 for 0-indexed month
-        const day = parseInt(parts[1], 10);
-        const hours = parseInt(parts[4], 10);
-        const minutes = parseInt(parts[5], 10);
-
-        const date = new Date(year, month, day, hours, minutes);
-
-        if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString('pt-BR', {
-            // Formatting to DD/MM/YYYY
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-          });
-        }
-      }
-
-      // Fallback for other potential date formats or if explicit parsing fails
-      const date = new Date(dateString);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString('pt-BR', {
-          // Formatting to DD/MM/YYYY
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        });
-      }
-
-      // Final fallback if all parsing fails
-      return dateString;
-    } catch {
-      return dateString;
-    }
-  };
+    const dia = String(brasiliaDate.getDate()).padStart(2, '0');
+    const mes = String(brasiliaDate.getMonth() + 1).padStart(2, '0');
+    const ano = brasiliaDate.getFullYear();
+    const hora = String(brasiliaDate.getHours()).padStart(2, '0');
+    const minuto = String(brasiliaDate.getMinutes()).padStart(2, '0');
+    return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+  }
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -355,7 +327,7 @@ export default function Orders() {
                               {getStatusName(order.status)}
                             </div>
                           </div>
-                          <p className="text-sm text-gray-500">Realizado em {formatDate(order.data_pedido)}</p>
+                          <p className="text-sm text-gray-500">Realizado em {formatDateTimeBR(order.createdAt)}</p>
                         </div>
                         <div className="flex items-center gap-4">
                           <p className="text-lg font-bold text-blue-600">{currencyFormat(order.total)}</p>

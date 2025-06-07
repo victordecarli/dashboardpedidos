@@ -168,6 +168,7 @@ exports.getAllOrders = async (req, res) => {
         status: order.status || 'processando',
         data_pedido: formatDate(order.createdAt),
         isPaid: order.isPaid,
+        createdAt: order.createdAt,
       };
     });
 
@@ -230,6 +231,7 @@ exports.getOrderById = async (req, res) => {
       status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
       isPaid: order.isPaid,
+      createdAt: order.createdAt,
     };
 
     res.status(200).json({
@@ -290,6 +292,7 @@ exports.getOrdersByUser = async (req, res) => {
       status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
       isPaid: order.isPaid,
+      createdAt: order.createdAt,
     }));
 
     res.status(200).json({
@@ -402,6 +405,7 @@ exports.updateOrder = async (req, res) => {
       status: order.status || 'processando',
       data_pedido: formatDate(order.createdAt),
       isPaid: order.isPaid,
+      createdAt: order.createdAt,
     };
 
     res.status(200).json({
