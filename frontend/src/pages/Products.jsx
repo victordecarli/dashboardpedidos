@@ -86,11 +86,15 @@ export default function Products() {
   const navigate = useNavigate();
   const isAdmin = getUserRole()?.toLowerCase() === 'admin';
 
+  // Atualiza produtos do backend ao trocar o filtro de status (admin)
   useEffect(() => {
-    if (products.length === 0 && !isLoadingProduct) {
-      fetchProducts();
+    if (!isAdmin) return;
+    if (statusFilter === 'inativo' || statusFilter === 'todos') {
+      fetchProducts(true);
+    } else if (statusFilter === 'ativo') {
+      fetchProducts(false);
     }
-  }, [products.length, isLoadingProduct, fetchProducts]);
+  }, [statusFilter, isAdmin, fetchProducts]);
 
   const adicionarAoCarrinho = (produto) => {
     addToCart(produto);
