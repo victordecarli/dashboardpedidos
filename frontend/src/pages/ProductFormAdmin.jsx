@@ -19,6 +19,7 @@ export default function ProductFormAdmin() {
   });
 
   const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState(null);
@@ -35,6 +36,7 @@ export default function ProductFormAdmin() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleImageChange = async (e) => {
@@ -77,25 +79,25 @@ export default function ProductFormAdmin() {
     }
   };
 
+  const validate = (fields = form) => {
+    const newErrors = {};
+    if (!fields.name.trim()) newErrors.name = 'Nome é obrigatório';
+    if (!fields.price || isNaN(fields.price) || Number(fields.price) <= 0)
+      newErrors.price = 'Preço válido é obrigatório';
+    if (!fields.stock || isNaN(fields.stock) || Number(fields.stock) < 0)
+      newErrors.stock = 'Estoque válido é obrigatório';
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
-    if (!form.name.trim() || !form.price || !form.stock) {
-      setError('Nome, preço e estoque são obrigatórios.');
-      toast.error('Preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    if (parseFloat(form.price) < 0 || parseInt(form.stock) < 0) {
-      setError('Preço e estoque não podem ser negativos.');
-      toast.error('Preço e estoque não podem ser negativos.');
-      return;
-    }
+    const validation = validate();
+    setErrors(validation);
+    if (Object.keys(validation).length > 0) return;
 
     try {
       setIsSubmitting(true);
-
       // Criar FormData para enviar arquivo
       const formData = new FormData();
       formData.append('name', form.name);
@@ -103,13 +105,15 @@ export default function ProductFormAdmin() {
       formData.append('stock', parseInt(form.stock));
       formData.append('description', form.description || '');
       formData.append('status', form.status);
-
       if (imageFile) {
         formData.append('image', imageFile);
       }
-
       await createProduct(formData);
       toast.success('Produto cadastrado com sucesso!');
+      setForm({ name: '', price: '', description: '', stock: '', status: 'ativo' });
+      setImageFile(null);
+      setImagePreview(null);
+      setErrors({});
       navigate('/products');
     } catch (err) {
       console.error(err);
@@ -119,6 +123,8 @@ export default function ProductFormAdmin() {
       setIsSubmitting(false);
     }
   };
+
+  const isFormValid = Object.keys(validate()).length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -155,23 +161,33 @@ export default function ProductFormAdmin() {
                 <div className="p-8">
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Produto</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="form-name">
+                        Nome do Produto
+                      </label>
                       <input
+                        id="form-name"
                         name="name"
                         value={form.name}
                         onChange={handleChange}
                         placeholder="Ex: Pizza Margherita"
                         required
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                        aria-label="Nome do produto"
+                        className={`w-full border ${
+                          errors.name ? 'border-red-400' : 'border-gray-300'
+                        } rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow`}
                       />
+                      {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Preço</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="form-price">
+                          Preço
+                        </label>
                         <div className="relative">
                           <span className="absolute left-3 top-2.5 text-gray-500">R$</span>
                           <input
+                            id="form-price"
                             name="price"
                             value={form.price}
                             onChange={handleChange}
@@ -179,32 +195,47 @@ export default function ProductFormAdmin() {
                             type="number"
                             step="0.01"
                             required
-                            className="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                            aria-label="Preço do produto"
+                            className={`w-full border ${
+                              errors.price ? 'border-red-400' : 'border-gray-300'
+                            } rounded-lg pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow`}
                           />
                         </div>
+                        {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Estoque</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="form-stock">
+                          Estoque
+                        </label>
                         <input
+                          id="form-stock"
                           name="stock"
                           value={form.stock}
                           onChange={handleChange}
                           placeholder="Quantidade disponível"
                           type="number"
                           required
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                          aria-label="Estoque do produto"
+                          className={`w-full border ${
+                            errors.stock ? 'border-red-400' : 'border-gray-300'
+                          } rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow`}
                         />
+                        {errors.stock && <p className="text-xs text-red-500 mt-1">{errors.stock}</p>}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="form-description">
+                        Descrição
+                      </label>
                       <textarea
+                        id="form-description"
                         name="description"
                         value={form.description}
                         onChange={handleChange}
                         placeholder="Descreva os detalhes do produto..."
                         rows={4}
+                        aria-label="Descrição do produto"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                       />
                     </div>
@@ -231,7 +262,13 @@ export default function ProductFormAdmin() {
                               </>
                             )}
                           </div>
-                          <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            aria-label="Selecionar imagem do produto"
+                          />
                         </label>
                       </div>
                     </div>
@@ -242,6 +279,7 @@ export default function ProductFormAdmin() {
                         name="status"
                         value={form.status}
                         onChange={handleChange}
+                        aria-label="Status do produto"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                       >
                         <option value="ativo">Ativo</option>
@@ -265,11 +303,30 @@ export default function ProductFormAdmin() {
                       </button>
                       <button
                         type="submit"
-                        disabled={isSubmitting}
-                        className={`bg-blue-600 text-white px-6 py-2.5 rounded-lg transition ${
-                          isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+                        disabled={isSubmitting || !isFormValid}
+                        className={`bg-blue-600 text-white px-6 py-2.5 rounded-lg transition flex items-center gap-2 ${
+                          isSubmitting || !isFormValid ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
                         }`}
+                        aria-label="Cadastrar produto"
                       >
+                        {isSubmitting && (
+                          <svg
+                            className="animate-spin h-4 w-4 mr-2 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                          </svg>
+                        )}
                         {isSubmitting ? 'Cadastrando...' : 'Cadastrar Produto'}
                       </button>
                     </div>
@@ -278,11 +335,10 @@ export default function ProductFormAdmin() {
               </div>
             </div>
 
-            {/* Preview */}
-            <div className="hidden md:block">
+            {/* Preview mobile e desktop */}
+            <div className="block md:block mt-8 md:mt-0">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-8">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Pré-visualização</h2>
-
                 <div className="aspect-square bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
                   {imagePreview ? (
                     <img src={imagePreview} alt="Preview do produto" className="w-full h-full object-cover" />
@@ -290,7 +346,6 @@ export default function ProductFormAdmin() {
                     <PhotoIcon className="w-12 h-12 text-gray-400" />
                   )}
                 </div>
-
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">{form.name || 'Nome do Produto'}</h3>
@@ -298,13 +353,11 @@ export default function ProductFormAdmin() {
                       {form.price ? currencyFormat(form.price) : 'R$ 0,00'}
                     </p>
                   </div>
-
                   <div>
                     <p className="text-sm text-gray-600">
                       {form.description || 'Descrição do produto aparecerá aqui...'}
                     </p>
                   </div>
-
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-600">Estoque: {form.stock || '0'} unidades</span>
                     <span
