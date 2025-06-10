@@ -96,6 +96,12 @@ export default function Products() {
     }
   }, [statusFilter, isAdmin, fetchProducts]);
 
+  // Carrega produtos para usuários normais ao abrir a página
+  useEffect(() => {
+    if (isAdmin) return;
+    fetchProducts(false);
+  }, [isAdmin, fetchProducts]);
+
   const adicionarAoCarrinho = (produto) => {
     addToCart(produto);
 
